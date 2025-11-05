@@ -1,0 +1,16 @@
+# Node.js
+node_modules/
+package-lock.json
+.env
+
+# Python
+__pycache__/
+*.pyc
+venv/
+
+# Logs
+*.log
+
+# Build outputs
+frontend/build/
+backend/__pycache__/
