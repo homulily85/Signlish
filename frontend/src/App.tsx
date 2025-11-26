@@ -10,12 +10,10 @@ function App() {
           <ModeToggle />
         </div>
         <main>
-          <div class="h-screen flex items-center justify-center">
-
-            <h1 class="text-3xl font-bold underline">
+          <div className="h-screen flex items-center justify-center">
+            <h1 className="text-3xl font-bold underline">
               Hello, Vite + React!
             </h1>
-
           </div>
         </main>
       </div>
