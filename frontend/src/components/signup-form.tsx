@@ -1,54 +1,88 @@
-import { useState } from "react"
-import { GalleryVerticalEnd, Check } from "lucide-react"
-import illustration from "@/assets/login-illustration.jpg"
-import { SignupForm } from "@/components/signup-form"
-import { OTPForm } from "@/components/otp-form"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+  FieldSeparator,
+} from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
 
-export default function SignupPage() {
-  const [step, setStep] = useState<1 | 2 | 3>(1)
+export function SignupForm({
+  className,
+  onSubmit,
+  ...props
+}: Omit<React.ComponentProps<"form">, "onSubmit"> & { onSubmit?: () => void }) {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onSubmit?.()
+  }
 
   return (
-    <div className="grid min-h-svh lg:grid-cols-2">
-      <div className="flex flex-col gap-4 p-6 md:p-10">
-        <div className="flex justify-center gap-2 md:justify-start">
-          <a href="#" className="flex items-center gap-2 font-medium">
-            <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
-              <GalleryVerticalEnd className="size-4" />
-            </div>
-            VolunteerHub
-          </a>
+    <form onSubmit={handleSubmit} className={cn("flex flex-col gap-6", className)} {...props}>
+      <FieldGroup>
+        <div className="flex flex-col items-center gap-1 text-center">
+          <h1 className="text-2xl font-bold">Create your account</h1>
+          <p className="text-muted-foreground text-sm text-balance">
+            Fill in the form below to create your account
+          </p>
         </div>
-        <div className="flex flex-1 items-center justify-center">
-          <div className="w-full max-w-sm">
-            {step === 1 && <SignupForm onSubmit={() => setStep(2)} />}
-            {step === 2 && <OTPForm onSubmit={() => setStep(3)} />}
-            {step === 3 && (
-              <div className="flex flex-col gap-6">
-                <div className="flex flex-col items-center gap-4 text-center">
-                  <div className="flex size-16 items-center justify-center rounded-full bg-green-100">
-                    <Check className="size-8 text-green-600" />
-                  </div>
-                  <h1 className="text-2xl font-bold">Account Created</h1>
-                  <p className="text-muted-foreground text-sm text-balance">
-                    Your account has been successfully created. Welcome to VolunteerHub!
-                  </p>
-                </div>
-                <Button asChild className="w-full">
-                  <a href="/login">Sign In</a>
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-      <div className="bg-muted relative hidden lg:block">
-        <img
-          src={illustration}
-          alt="Image"
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-      </div>
-    </div>
+        <Field>
+          <FieldLabel htmlFor="name">Full Name</FieldLabel>
+          <Input id="name" type="text" placeholder="John Doe" required />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="username">Username</FieldLabel>
+          <Input
+            id="username"
+            type="text"
+            placeholder="john.doe"
+            required
+            pattern="[a-z0-9._]{5,12}"
+            minLength={5}
+            maxLength={12}
+          />
+          <FieldDescription>
+            5-12 characters. Only lowercase letters, numbers, dots (.), and
+            underscores (_).
+          </FieldDescription>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="email">Email</FieldLabel>
+          <Input id="email" type="email" placeholder="m@example.com" required />
+          <FieldDescription>
+            We&apos;ll use this to contact you. We will not share your email
+            with anyone else.
+          </FieldDescription>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="password">Password</FieldLabel>
+          <Input id="password" type="password" placeholder="Must be at least 8 characters long." required />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="confirm-password">Confirm Password</FieldLabel>
+          <Input id="confirm-password" type="password" placeholder="Please confirm your password." required />
+        </Field>
+        <Field>
+          <Button type="submit">Create Account</Button>
+        </Field>
+        <FieldSeparator>Or continue with</FieldSeparator>
+        <Field>
+          <Button variant="outline" type="button">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path
+                d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
+                fill="currentColor"
+              />
+            </svg>
+            Sign up with Google
+          </Button>
+          <FieldDescription className="px-6 text-center">
+            Already have an account? <a href="/login">Sign in</a>
+          </FieldDescription>
+        </Field>
+      </FieldGroup>
+    </form>
   )
 }
