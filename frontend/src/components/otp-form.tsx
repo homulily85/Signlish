@@ -33,7 +33,7 @@ export function OTPForm({ className, onSubmit, ...props }: React.ComponentProps<
             <div className="flex size-10 items-center justify-center rounded-full bg-muted">
               <Lock className="size-5" />
             </div>
-              <span className="sr-only">VolunteerHub</span>
+              <span className="sr-only">Signlish</span>
             </a>
             <h1 className="text-xl font-bold">Enter verification code</h1>
             <FieldDescription>

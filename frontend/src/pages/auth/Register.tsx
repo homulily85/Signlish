@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { GalleryVerticalEnd, Check } from "lucide-react"
-import illustration from "@/assets/login-illustration.jpg"
+import illustration from "@/assets/login-illustration.png"
 import { SignupForm } from "@/components/signup-form"
 import { OTPForm } from "@/components/otp-form"
 import { Button } from "@/components/ui/button"
@@ -16,7 +16,7 @@ export default function SignupPage() {
             <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
               <GalleryVerticalEnd className="size-4" />
             </div>
-            VolunteerHub
+            Signlish
           </a>
         </div>
         <div className="flex flex-1 items-center justify-center">
@@ -31,7 +31,7 @@ export default function SignupPage() {
                   </div>
                   <h1 className="text-2xl font-bold">Account Created</h1>
                   <p className="text-muted-foreground text-sm text-balance">
-                    Your account has been successfully created. Welcome to VolunteerHub!
+                    Your account has been successfully created. Welcome to Signlish!
                   </p>
                 </div>
                 <Button asChild className="w-full">
