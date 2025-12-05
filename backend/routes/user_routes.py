@@ -71,6 +71,11 @@ async def verify_registration(req: RegisterVerifyRequest):
     del temp_users[req.email]
     return {"message": "Registration complete"}
 
+def serialize_user(user: dict) -> dict:
+    """Convert MongoDB document to JSON-serializable dict"""
+    return {**user, "_id": str(user["_id"])}
+
+
 @router.post("/login")
 async def login(request: LoginRequest):
     identifier = request.identifier
@@ -83,9 +88,66 @@ async def login(request: LoginRequest):
     if not user or user.get("password") != password:
         raise HTTPException(status_code=401, detail="Invalid credentials.")
     # Generate JWT token
-    token = create_access_token({"sub": user["id"], "email": user["email"]})
-    return {"user": user, "access_token": token, "token_type": "bearer"}
+    token = create_access_token({"sub": str(user["_id"]), "email": user["email"]})
+    return {
+    "user": serialize_user(user),
+    "access_token": token,
+    "token_type": "bearer"
+}
 
 @router.get("/protected")
 async def protected_route(payload=Depends(JWTBearer())):
     return {"message": "You are authenticated!", "user": payload}
+
+from auth.google import verify_google_token
+# Google OAuth login/register endpoint
+@router.post("/google-login")
+async def google_login(payload: dict):
+    token = payload.get("token")
+    if not token:
+        raise HTTPException(status_code=400, detail="Missing token")
+    google_user = verify_google_token(token)
+    user = get_user_by_email(google_user['email'])
+    if not user:
+        user_obj = User(name=google_user['name'], email=google_user['email'], password="")
+        create_user(user_obj)
+        user = get_user_by_email(google_user['email'])
+    jwt_token = create_access_token({"sub": user["id"], "email": user["email"]})
+    return {"user": user, "access_token": jwt_token, "token_type": "bearer"}
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class ResetPasswordRequest(BaseModel):
+    email: str
+    otp: str
+    new_password: str
+
+reset_otps = {}
+
+def generate_reset_otp():
+    return str(random.randint(100000, 999999))
+
+@router.post("/forgot-password")
+async def forgot_password(req: ForgotPasswordRequest):
+    user = get_user_by_email(req.email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    otp = generate_reset_otp()
+    reset_otps[req.email] = otp
+    send_otp_email(req.email, otp)
+    return {"message": "OTP sent to email"}
+
+@router.post("/reset-password")
+async def reset_password(req: ResetPasswordRequest):
+    otp = reset_otps.get(req.email)
+    if not otp or otp != req.otp:
+        raise HTTPException(status_code=400, detail="Invalid OTP")
+    user = get_user_by_email(req.email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user["password"] = req.new_password
+    user_collection = get_user_by_email.__globals__["get_user_collection"]()
+    user_collection.update_one({"email": req.email}, {"$set": {"password": req.new_password}})
+    del reset_otps[req.email]
+    return {"message": "Password reset successful"}
