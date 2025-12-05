@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 # from routes import sign_language_processor
 from routes import user_routes
+from routes import register_otp
 origins = [
     "http://localhost:5173", 
     "null",
@@ -14,7 +15,9 @@ app.add_middleware(
     allow_methods=["*"],       
     allow_headers=["*"],       
 )
-app.include_router(user_routes.router)
+# app.include_router(sign_language_processor.router)
+
+app.include_router(register_otp.router)
 # app.include_router(sign_language_processor.router)
 
 @app.get("/")

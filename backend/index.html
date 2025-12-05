@@ -12,9 +12,15 @@
         <input type="email" id="regEmail" placeholder="Email" required>
         <input type="text" id="regName" placeholder="Name" required>
         <input type="password" id="regPassword" placeholder="Password" required>
-        <button type="submit">Register</button>
+        <button type="submit">Send OTP</button>
     </form>
     <pre id="registerResult"></pre>
+
+    <form id="otpForm" style="display:none;">
+        <input type="text" id="otpInput" placeholder="Enter 6-digit OTP" required maxlength="6" pattern="\d{6}">
+        <button type="submit">Verify OTP</button>
+    </form>
+    <pre id="otpResult"></pre>
 
     <h2>Login</h2>
     <form id="loginForm">
@@ -30,12 +36,26 @@
             const email = document.getElementById('regEmail').value;
             const name = document.getElementById('regName').value;
             const password = document.getElementById('regPassword').value;
-            const res = await fetch('http://localhost:8000/register', {
+            const res = await fetch('http://localhost:8000/register/initiate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, name, password })
             });
             document.getElementById('registerResult').textContent = await res.text();
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('otpForm').style.display = '';
+        };
+
+        document.getElementById('otpForm').onsubmit = async function (e) {
+            e.preventDefault();
+            const email = document.getElementById('regEmail').value;
+            const otp = document.getElementById('otpInput').value;
+            const res = await fetch('http://localhost:8000/register/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, otp })
+            });
+            document.getElementById('otpResult').textContent = await res.text();
         };
 
         document.getElementById('loginForm').onsubmit = async function (e) {
