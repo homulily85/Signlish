@@ -2,9 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 # from routes import sign_language_processor
 from routes import user_routes
+from routes import lesson
 origins = [
     "http://localhost:5173", 
-    "http://127.0.0.1:5173",
     "null",
 ]
 app = FastAPI()
@@ -17,7 +17,9 @@ app.add_middleware(
 )
 # app.include_router(sign_language_processor.router)
 
-app.include_router(user_routes.router)
+# app.include_router(sign_language_processor.router)
+
+app.include_router(lesson.router)
 # app.include_router(sign_language_processor.router)
 
 @app.get("/")
