@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Test Register & Login</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+
+<body>
+    <!-- Google Sign-In Button -->
+    <!-- <div id="g_id_onload" data-client_id="251687541888-ids4rn3uv3slckrrisus9makb135tsht.apps.googleusercontent.com"
+        data-callback="handleGoogleSignIn"></div>
+    <div class="g_id_signin" data-type="standard"></div> -->
+
+    <h2>Register</h2>
+    <form id="registerForm">
+        <input type="email" id="regEmail" placeholder="Email" required>
+        <input type="text" id="regName" placeholder="Name" required>
+        <input type="password" id="regPassword" placeholder="Password" required>
+        <button type="submit">Send OTP</button>
+    </form>
+    <pre id="registerResult"></pre>
+
+    <form id="otpForm" style="display:none;">
+        <input type="text" id="otpInput" placeholder="Enter 6-digit OTP" required maxlength="6" pattern="\d{6}">
+        <button type="submit">Verify OTP</button>
+    </form>
+    <pre id="otpResult"></pre>
+
+    <h2>Login</h2>
+    <form id="loginForm">
+        <input type="text" id="loginIdentifier" placeholder="Email or Name" required>
+        <input type="password" id="loginPassword" placeholder="Password" required>
+        <button type="submit">Login</button>
+    </form>
+    <pre id="loginResult"></pre>
+    <h2>Forgot Password</h2>
+    <form id="forgotForm">
+        <input type="email" id="forgotEmail" placeholder="Email" required>
+        <button type="submit">Send OTP</button>
+    </form>
+    <pre id="forgotResult"></pre>
+
+    <form id="resetForm" style="display:none;">
+        <input type="email" id="resetEmail" placeholder="Email" required>
+        <input type="text" id="resetOtp" placeholder="Enter 6-digit OTP" required maxlength="6" pattern="\d{6}">
+        <input type="password" id="resetPassword" placeholder="New Password" required>
+        <button type="submit">Reset Password</button>
+    </form>
+    <pre id="resetResult"></pre>
+    <script>
+        // Google Sign-In callback
+        function handleGoogleSignIn(response) {
+            // response.credential is the ID token
+            fetch('http://localhost:8000/google-login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: response.credential })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    alert(JSON.stringify(data)); // Handle Google login success (e.g., save JWT)
+                    // Redirect or perform other actions
+                });
+        }
+
+        // Register form submission
+        document.getElementById('registerForm').onsubmit = async function (e) {
+            e.preventDefault();
+            const email = document.getElementById('regEmail').value;
+            const name = document.getElementById('regName').value;
+            const password = document.getElementById('regPassword').value;
+            const res = await fetch('http://localhost:8000/register/initiate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, name, password })
+            });
+            const result = await res.text();
+            document.getElementById('registerResult').textContent = result;
+
+            if (res.ok) {
+                // Hide register form and show OTP form
+                document.getElementById('registerForm').style.display = 'none';
+                document.getElementById('otpForm').style.display = '';
+            }
+        };
+
+        // OTP form submission
+        document.getElementById('otpForm').onsubmit = async function (e) {
+            e.preventDefault();
+            const email = document.getElementById('regEmail').value; // Get the email from the registration form
+            const otp = document.getElementById('otpInput').value;
+            const res = await fetch('http://localhost:8000/register/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, otp })
+            });
+            const result = await res.text();
+            document.getElementById('otpResult').textContent = result;
+        };
+
+        // Login form submission
+        document.getElementById('loginForm').onsubmit = async function (e) {
+            e.preventDefault();
+            const identifier = document.getElementById('loginIdentifier').value;
+            const password = document.getElementById('loginPassword').value;
+            const res = await fetch('http://localhost:8000/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ identifier, password })
+            });
+            const result = await res.text();
+            document.getElementById('loginResult').textContent = result;
+        };
+        // Forgot Password form submission
+        document.getElementById('forgotForm').onsubmit = async function (e) {
+            e.preventDefault();
+            const email = document.getElementById('forgotEmail').value;
+            const res = await fetch('http://localhost:8000/forgot-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            const result = await res.text();
+            document.getElementById('forgotResult').textContent = result;
+            if (res.ok) {
+                document.getElementById('forgotForm').style.display = 'none';
+                document.getElementById('resetForm').style.display = '';
+                document.getElementById('resetEmail').value = email;
+            }
+        };
+
+        // Reset Password form submission
+        document.getElementById('resetForm').onsubmit = async function (e) {
+            e.preventDefault();
+            const email = document.getElementById('resetEmail').value;
+            const otp = document.getElementById('resetOtp').value;
+            const new_password = document.getElementById('resetPassword').value;
+            const res = await fetch('http://localhost:8000/reset-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, otp, new_password })
+            });
+            const result = await res.text();
+            document.getElementById('resetResult').textContent = result;
+        };
+    </script>
+</body>
+
+</html>
