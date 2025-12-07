@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { ModeToggle } from "@/components/mode-toggle"
 import LoginPage from "@/pages/auth/Login"
 import SignupPage from "./pages/auth/Register"
+import Landing from "./pages/landing/Landing"
 import PasswordResetPage from "./pages/auth/PasswordReset"
 import Error404 from "./components/errors/404"
 import Error500 from "./components/errors/500"
@@ -30,9 +31,13 @@ function AppContent() {
           <Route
             path="/"
             element={
-              <header className="w-full flex justify-end p-4">
-                <ModeToggle />
-              </header>
+              <>
+                <header className="w-full flex justify-end p-4">
+                  <ModeToggle />
+                </header>
+
+                <Landing />
+              </>
             }
           />
           {/* Thêm các route chính khác cần footer vào đây */}
