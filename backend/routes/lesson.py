@@ -1,6 +1,9 @@
+# Flashcard endpoint: returns a random lesson as a flashcard question
+import random as pyrandom
 from fastapi import APIRouter, HTTPException
 from models.lesson import Lesson
 from models.user_progress import UserProgress
+from models.flashcard import Flashcard
 from db import get_user_collection
 from typing import List
 
@@ -35,3 +38,15 @@ async def complete_lesson(user_id: str, lesson_id: int):
         progress["completed_lessons"].append(lesson_id)
         user_collection.update_one({"id": user_id}, {"$set": {"progress": progress}})
     return {"message": "Lesson marked as complete", "progress": progress}
+
+
+flashcards = [
+    Flashcard(source=l.source, answer=l.word) for l in lessons
+]
+
+@router.get("/flashcard", response_model=Flashcard)
+async def get_flashcard():
+    if not flashcards:
+        raise HTTPException(status_code=404, detail="No flashcards available")
+    flashcard = pyrandom.choice(flashcards)
+    return flashcard
