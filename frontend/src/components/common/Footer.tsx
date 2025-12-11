@@ -1,58 +1,58 @@
-import { Instagram, Facebook, Twitter, Linkedin,} from "lucide-react"
-import logoLight from "@/assets/logo-light.svg"
-import logoDark from "@/assets/logo-dark.svg"
-import { useTheme } from "@/components/theme-provider"
+import { Instagram, Facebook, Twitter, Linkedin } from "lucide-react";
+import Logo from "@/assets/logo.svg?react";
 
 export default function Footer() {
-  const { theme } = useTheme()
-  
-  // Determine which logo to use based on theme
-  const logoImage = theme === "dark" ? logoDark : logoLight
-
   const socialLinks = [
     { icon: Instagram, href: "#", label: "Instagram" },
     { icon: Facebook, href: "#", label: "Facebook" },
     { icon: Twitter, href: "#", label: "Twitter" },
     { icon: Linkedin, href: "#", label: "LinkedIn" },
-  ]
+  ];
 
   const productLinks = [
     { label: "Overview", href: "#" },
     { label: "Pricing", href: "#" },
     { label: "Marketplace", href: "#" },
     { label: "Features", href: "#" },
-  ]
+  ];
 
   const companyLinks = [
     { label: "About", href: "#" },
     { label: "Team", href: "#" },
     { label: "Blog", href: "#" },
     { label: "Careers", href: "#" },
-  ]
+  ];
 
   const resourceLinks = [
     { label: "Help", href: "#" },
     { label: "Sales", href: "#" },
     { label: "Advertise", href: "#" },
     { label: "Privacy", href: "#" },
-  ]
+  ];
 
   return (
     <footer className="bg-background border-t border-border">
       {/* Main footer content */}
       <div className="max-w-7xl mx-auto px-4 py-12 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-8 mb-12">
-                  <div className="md:col-span-2">
-                    <div className="flex items-center gap-2 mb-4">
-                      <img src={logoImage} alt="Signlish Logo" className="h-12" />
-                    </div>
-                    <p className="text-muted-foreground text-sm leading-relaxed mb-6">
-                      Placeholder placeholder placeholder placeholder.
-                    </p>
-                    {/* Social icons */}
+          <div className="md:col-span-2">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="h-12 w-auto overflow-hidden flex items-center">
+                <Logo
+                  width={undefined}
+                  height={undefined}
+                  className="h-12 w-auto text-foreground transition-colors"
+                  preserveAspectRatio="xMidYMid meet"
+                />
+              </div>
+            </div>
+            <p className="text-muted-foreground text-sm leading-relaxed mb-6">
+              Placeholder placeholder placeholder placeholder.
+            </p>
+            {/* Social icons */}
             <div className="flex gap-4">
               {socialLinks.map((social) => {
-                const Icon = social.icon
+                const Icon = social.icon;
                 return (
                   <a
                     key={social.label}
@@ -62,7 +62,7 @@ export default function Footer() {
                   >
                     <Icon className="w-5 h-5" />
                   </a>
-                )
+                );
               })}
             </div>
           </div>
@@ -73,7 +73,10 @@ export default function Footer() {
             <ul className="space-y-3">
               {productLinks.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} className="text-muted-foreground hover:text-foreground transition-colors text-sm">
+                  <a
+                    href={link.href}
+                    className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+                  >
                     {link.label}
                   </a>
                 </li>
@@ -87,7 +90,10 @@ export default function Footer() {
             <ul className="space-y-3">
               {companyLinks.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} className="text-muted-foreground hover:text-foreground transition-colors text-sm">
+                  <a
+                    href={link.href}
+                    className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+                  >
                     {link.label}
                   </a>
                 </li>
@@ -101,7 +107,10 @@ export default function Footer() {
             <ul className="space-y-3">
               {resourceLinks.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} className="text-muted-foreground hover:text-foreground transition-colors text-sm">
+                  <a
+                    href={link.href}
+                    className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+                  >
                     {link.label}
                   </a>
                 </li>
@@ -113,12 +122,20 @@ export default function Footer() {
         {/* Bottom divider and links */}
         <div className="border-t border-border pt-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <p className="text-muted-foreground text-sm">© 2025 Signlish. All rights reserved.</p>
+            <p className="text-muted-foreground text-sm">
+              © 2025 Signlish. All rights reserved.
+            </p>
             <div className="flex gap-6">
-              <a href="#" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
+              <a
+                href="#"
+                className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+              >
                 Terms and Conditions
               </a>
-              <a href="#" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
+              <a
+                href="#"
+                className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+              >
                 Privacy Policy
               </a>
             </div>
@@ -126,5 +143,5 @@ export default function Footer() {
         </div>
       </div>
     </footer>
-  )
+  );
 }
