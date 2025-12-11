@@ -1,7 +1,14 @@
 import { Instagram, Facebook, Twitter, Linkedin,} from "lucide-react"
-// import logoImage from "@/assets/logo.png"
+import logoLight from "@/assets/logo-light.svg"
+import logoDark from "@/assets/logo-dark.svg"
+import { useTheme } from "@/components/theme-provider"
 
 export default function Footer() {
+  const { theme } = useTheme()
+  
+  // Determine which logo to use based on theme
+  const logoImage = theme === "dark" ? logoDark : logoLight
+
   const socialLinks = [
     { icon: Instagram, href: "#", label: "Instagram" },
     { icon: Facebook, href: "#", label: "Facebook" },
@@ -37,8 +44,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-8 mb-12">
                   <div className="md:col-span-2">
                     <div className="flex items-center gap-2 mb-4">
-                      <img src="" alt="Signlish Logo" className="w-8 h-8" />
-                      <span className="font-bold text-foreground">Signlish</span>
+                      <img src={logoImage} alt="Signlish Logo" className="h-12" />
                     </div>
                     <p className="text-muted-foreground text-sm leading-relaxed mb-6">
                       Placeholder placeholder placeholder placeholder.
