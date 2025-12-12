@@ -12,6 +12,7 @@ import Error503 from "./components/errors/503"
 import Error403 from "./components/errors/403"
 import Error401 from "./components/errors/401"
 import Footer from "@/components/common/Footer"
+import Dictionary from "./pages/Dictionary"
 
 function AppContent() {
   return (
@@ -59,6 +60,7 @@ function AppContent() {
           <Route path="403" element={<Error403 />} />
           <Route path="401" element={<Error401 />} />
           <Route path="*" element={<Error404 />} />
+          <Route path="/dictionary" element={<Dictionary />} />
         </Route>
       </Routes>
     </div>
