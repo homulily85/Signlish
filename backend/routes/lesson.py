@@ -1,5 +1,3 @@
-# Flashcard endpoint: returns a random lesson as a flashcard question
-
 import random as pyrandom
 import csv
 import os
@@ -90,18 +88,66 @@ async def complete_word(user_id: str, category: str, word_id: int):
     return {"message": "Word marked as complete in lesson", "progress": progress}
 
 
+# Load questions from questions.csv for flashcards
+def load_flashcard_questions():
+    csv_path = os.path.join(os.path.dirname(__file__), '../utils/questions.csv')
+    questions = []
+    with open(csv_path, newline='', encoding='utf-8') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            choices = [row['choice1'], row['choice2'], row['choice3'], row['choice4']]
+            questions.append({
+                'id': int(row['id']),
+                'video': row['video'],
+                'answer': row['answer'],
+                'choices': choices,
+                'category': row['category']
+            })
+    return questions
 
+flashcard_questions = load_flashcard_questions()
 
-# Flashcards: pick a random word from any lesson
-all_words = [lesson for lessons in lessons_by_category.values() for lesson in lessons]
-flashcards = [
-    Flashcard(source=l.source, answer=l.word) for l in all_words
-]
+# Flashcard: for each lesson (category), provide a flashcard question at the end
+@router.get("/lessons/{category}/flashcard", response_model=Flashcard)
+async def get_lesson_flashcard(category: str):
+    # Find the last question in this category
+    questions = [q for q in flashcard_questions if q['category'] == category]
+    if not questions:
+        raise HTTPException(status_code=404, detail="No flashcard for this lesson")
+    q = questions[-1]
+    return Flashcard(
+        id=q['id'],
+        video=q['video'],
+        answer=q['answer'],
+        choices=q['choices'],
+        category=q['category']
+    )
 
+# Save flashcard progress for correct answer per lesson
+@router.post("/lessons/{category}/flashcard/progress")
+async def save_flashcard_progress(user_id: str, category: str):
+    user_collection = get_user_collection()
+    user = user_collection.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    progress = user.get("progress", {})
+    # Mark flashcard as completed for this lesson (use special key)
+    flashcard_key = f"{category}_flashcard"
+    progress[flashcard_key] = True
+    user_collection.update_one({"id": user_id}, {"$set": {"progress": progress}})
+    return {"message": "Flashcard for lesson marked as complete", "progress": progress}
 
-@router.get("/flashcard", response_model=Flashcard)
-async def get_flashcard():
-    if not flashcards:
-        raise HTTPException(status_code=404, detail="No flashcards available")
-    flashcard = pyrandom.choice(flashcards)
-    return flashcard
+# Get flashcard practice progress for all lessons (categories) for a user
+@router.get("/user/flashcard_progress", response_model=dict)
+async def get_flashcard_progress(user_id: str):
+    user_collection = get_user_collection()
+    user = user_collection.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    progress = user.get("progress", {})
+    flashcard_progress = {}
+    for category in set(q['category'] for q in flashcard_questions):
+        flashcard_key = f"{category}_flashcard"
+        flashcard_progress[category] = bool(progress.get(flashcard_key, False))
+    return flashcard_progress
+# Flashcard endpoint: returns a random lesson as a flashcard question
