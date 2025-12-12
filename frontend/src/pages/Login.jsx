@@ -22,7 +22,7 @@ export default function Login({ setUser }) {
 
             // Lưu token vào localStorage
             localStorage.setItem("token", data.token);
-
+            console.log("Login successful:", data);
             // Cập nhật user state
             setUser({ name: data.user.name, email: data.user.email });
 

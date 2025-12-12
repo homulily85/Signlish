@@ -99,7 +99,7 @@ async def login(request: LoginRequest):
 async def protected_route(payload=Depends(JWTBearer())):
     return {"message": "You are authenticated!", "user": payload}
 
-from auth.google import verify_google_token
+# from auth.google import verify_google_token
 # Google OAuth login/register endpoint
 @router.post("/google-login")
 async def google_login(payload: dict):
