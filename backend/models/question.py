@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import List
 
-class Flashcard(BaseModel):
+class Question(BaseModel):
     id: int
     video: str  # video URL
     answer: str  # correct word/phrase
