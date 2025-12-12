@@ -15,13 +15,10 @@ app.add_middleware(
     allow_methods=["*"],       
     allow_headers=["*"],       
 )
-# app.include_router(sign_language_processor.router)
-
-# app.include_router(sign_language_processor.router)
 
 app.include_router(lesson.router)
-# app.include_router(sign_language_processor.router)
 
+app.include_router(user_routes.router)
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
