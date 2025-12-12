@@ -99,22 +99,6 @@ async def login(request: LoginRequest):
 async def protected_route(payload=Depends(JWTBearer())):
     return {"message": "You are authenticated!", "user": payload}
 
-from auth.google import verify_google_token
-# Google OAuth login/register endpoint
-@router.post("/google-login")
-async def google_login(payload: dict):
-    token = payload.get("token")
-    if not token:
-        raise HTTPException(status_code=400, detail="Missing token")
-    google_user = verify_google_token(token)
-    user = get_user_by_email(google_user['email'])
-    if not user:
-        user_obj = User(name=google_user['name'], email=google_user['email'], password="")
-        create_user(user_obj)
-        user = get_user_by_email(google_user['email'])
-    jwt_token = create_access_token({"sub": user["id"], "email": user["email"]})
-    return {"user": user, "access_token": jwt_token, "token_type": "bearer"}
-
 class ForgotPasswordRequest(BaseModel):
     email: str
 
