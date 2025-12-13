@@ -10,12 +10,15 @@ import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandL
 import type {DictionaryItem} from "@/types/type.ts";
 
 export default function SignLanguageDictionary() {
-  const [selectedWord, setSelectedWord] = React.useState<DictionaryItem| null>(null)
+  const [selectedWord, setSelectedWord] = React.useState<DictionaryItem | null>(null)
   const [popularWords, setPopularWords] = React.useState<DictionaryItem[]>([])
   const [searchOpen, setSearchOpen] = React.useState(false)
   const [searchValue, setSearchValue] = React.useState("")
   const [dictionary, setDictionary] = React.useState<DictionaryItem[]>([])
   const searchInputRef = React.useRef<HTMLInputElement>(null)
+  const videoRef = React.useRef<HTMLVideoElement | null>(null)
+  const [isPlaying, setIsPlaying] = React.useState(false);
+
 
   React.useEffect(() => {
     if (searchOpen && searchInputRef.current) {
@@ -26,15 +29,21 @@ export default function SignLanguageDictionary() {
   }, [searchOpen])
 
   React.useEffect(() => {
-    fetch("http://localhost:8000/dictionary").then((res)=>{
-      res.json().then((data)=>{
+    fetch("http://localhost:8000/dictionary").then((res) => {
+      res.json().then((data) => {
         setDictionary([...data])
-        setPopularWords(data.slice(5,25))
+        setPopularWords(data.slice(0, 20))
       })
     })
   }, [])
 
-  const filteredWords = dictionary.filter((word) => word.word.toLowerCase().includes(searchValue.toLowerCase()))
+  // const filteredWords = dictionary.filter((word) => word.word.toLowerCase().includes(searchValue.toLowerCase()))
+  // Tránh bị khựng UI khi ấn vào Search box
+  const filteredWords = React.useMemo(() => {
+    return dictionary
+        .filter((word) => word.word.toLowerCase().includes(searchValue.toLowerCase()))
+        .slice(0, 20);
+  }, [dictionary, searchValue]);
 
   const handleWordSelect = (word: DictionaryItem) => {
     setSelectedWord(word)
@@ -110,7 +119,7 @@ export default function SignLanguageDictionary() {
                                 >
                                   <div className="flex items-center gap-3 w-full">
                                     <img
-                                        src={"/placeholder.svg"}
+                                        src={`http://localhost:8000/dictionary/thumbnails/${word.id}.jpg`}
                                         alt={`${word.word} sign`}
                                         className="w-12 h-12 rounded-md object-cover"
                                     />
@@ -160,7 +169,7 @@ export default function SignLanguageDictionary() {
                           <div
                               className="relative sm:w-48 h-40 sm:h-32 rounded-lg overflow-hidden bg-muted flex-shrink-0">
                             <img
-                                src={"/placeholder.svg"}
+                                src={`http://localhost:8000/dictionary/thumbnails/${word.id}.jpg`}
                                 alt={`${word.word} sign language demonstration`}
                                 className="w-full h-full object-cover"
                             />
@@ -214,26 +223,37 @@ export default function SignLanguageDictionary() {
               </div>
             </CardHeader>
 
-          <CardContent className="p-6 md:p-8">
-            {/* Main Video */}
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2 text-foreground">
-                <Play className="h-5 w-5 text-primary" />
-                Video Demonstration
-              </h2>
-              <div className="relative aspect-video rounded-lg overflow-hidden bg-muted shadow-md">
-                <img
-                  src={selectedWord.source || "/placeholder.svg"}
-                  alt={`How to sign ${selectedWord.word}`}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                  <Button size="lg" className="rounded-full h-16 w-16 p-0" aria-label="Play video">
-                    <Play className="h-8 w-8" />
-                  </Button>
+            <CardContent className="p-6 md:p-8">
+              {/* Main Video */}
+              <div className="mb-8">
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2 text-foreground">
+                  <Play className="h-5 w-5 text-primary"/>
+                  Video Demonstration
+                </h2>
+                <div className="relative aspect-video rounded-lg overflow-hidden bg-muted shadow-md">
+                  <video
+                      ref={videoRef}
+                      src={selectedWord.source}
+                      className="w-full h-full object-cover"
+                      onPlay={() => setIsPlaying(true)}
+                      onPause={() => setIsPlaying(false)}
+                      onEnded={() => setIsPlaying(false)}
+                  />
+
+                  {!isPlaying && (
+                      <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                        <Button
+                            size="lg"
+                            className="rounded-full h-16 w-16 p-0"
+                            aria-label="Play video"
+                            onClick={() => videoRef.current?.play()}
+                        >
+                          <Play className="h-8 w-8"/>
+                        </Button>
+                      </div>
+                  )}
                 </div>
               </div>
-            </div>
 
               <Separator className="my-8"/>
 

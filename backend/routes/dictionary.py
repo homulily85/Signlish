@@ -8,7 +8,7 @@ router = APIRouter()
 
 dictionary_data = []
 
-with open("words.csv", "r", encoding="utf-8") as f:
+with open("data/words.csv", "r", encoding="utf-8") as f:
     reader = csv.DictReader(f)
     for row in reader:
         dictionary_data.append(DictionaryItem(**row))
