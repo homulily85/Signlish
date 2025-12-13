@@ -1,20 +1,19 @@
-from auth.middleware import JWTBearer
-from fastapi import Depends
-from fastapi import APIRouter, HTTPException
-from schemas.user import UserCreate, UserInDB
-from service.user_service import create_user, get_user_by_email, get_user_by_name
-from schemas.user import LoginRequest, UserInDB, UserCreate
-from auth.jwt import create_access_token
-import pyotp
 import os
 import random
 import smtplib
 from email.mime.text import MIMEText
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+
+from auth.jwt import create_access_token
+from auth.middleware import JWTBearer
 from dotenv import load_dotenv
-from service.user_service import create_user
+from fastapi import APIRouter, HTTPException
+from fastapi import Depends
 from models.user_model import User
+from pydantic import BaseModel
+from schemas.user import LoginRequest, UserInDB, UserCreate
+from schemas.user import UserCreate, UserInDB
+from service.user_service import create_user
+from service.user_service import create_user, get_user_by_email, get_user_by_name
 
 load_dotenv()
 
@@ -25,19 +24,24 @@ SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 
 router = APIRouter()
 
+
 class RegisterInitRequest(BaseModel):
     email: str
     name: str
     password: str
 
+
 class RegisterVerifyRequest(BaseModel):
     email: str
     otp: str
 
-temp_users = {}    
+
+temp_users = {}
+
 
 def generate_otp():
     return str(random.randint(100000, 999999))
+
 
 def send_otp_email(to_email, otp):
     msg = MIMEText(f"Your OTP is: {otp}")
@@ -48,6 +52,7 @@ def send_otp_email(to_email, otp):
         server.starttls()
         server.login(SMTP_USER, SMTP_PASSWORD)
         server.sendmail(SMTP_USER, [to_email], msg.as_string())
+
 
 @router.post("/register/initiate")
 async def initiate_registration(req: RegisterInitRequest):
@@ -60,6 +65,7 @@ async def initiate_registration(req: RegisterInitRequest):
     send_otp_email(req.email, otp)
     return {"message": "OTP sent to email"}
 
+
 @router.post("/register/verify")
 async def verify_registration(req: RegisterVerifyRequest):
     user = temp_users.get(req.email)
@@ -70,6 +76,7 @@ async def verify_registration(req: RegisterVerifyRequest):
     create_user(user_obj)
     del temp_users[req.email]
     return {"message": "Registration complete"}
+
 
 def serialize_user(user: dict) -> dict:
     """Convert MongoDB document to JSON-serializable dict"""
@@ -90,27 +97,50 @@ async def login(request: LoginRequest):
     # Generate JWT token
     token = create_access_token({"sub": str(user["_id"]), "email": user["email"]})
     return {
-    "user": serialize_user(user),
-    "access_token": token,
-    "token_type": "bearer"
-}
+        "user": serialize_user(user),
+        "access_token": token,
+        "token_type": "bearer"
+    }
+
 
 @router.get("/protected")
 async def protected_route(payload=Depends(JWTBearer())):
     return {"message": "You are authenticated!", "user": payload}
 
+
+# from auth.google import verify_google_token
+# Google OAuth login/register endpoint
+@router.post("/google-login")
+async def google_login(payload: dict):
+    token = payload.get("token")
+    if not token:
+        raise HTTPException(status_code=400, detail="Missing token")
+    google_user = verify_google_token(token)
+    user = get_user_by_email(google_user['email'])
+    if not user:
+        user_obj = User(name=google_user['name'], email=google_user['email'], password="")
+        create_user(user_obj)
+        user = get_user_by_email(google_user['email'])
+    jwt_token = create_access_token({"sub": user["id"], "email": user["email"]})
+    return {"user": user, "access_token": jwt_token, "token_type": "bearer"}
+
+
 class ForgotPasswordRequest(BaseModel):
     email: str
+
 
 class ResetPasswordRequest(BaseModel):
     email: str
     otp: str
     new_password: str
 
+
 reset_otps = {}
+
 
 def generate_reset_otp():
     return str(random.randint(100000, 999999))
+
 
 @router.post("/forgot-password")
 async def forgot_password(req: ForgotPasswordRequest):
@@ -121,6 +151,7 @@ async def forgot_password(req: ForgotPasswordRequest):
     reset_otps[req.email] = otp
     send_otp_email(req.email, otp)
     return {"message": "OTP sent to email"}
+
 
 @router.post("/reset-password")
 async def reset_password(req: ResetPasswordRequest):
