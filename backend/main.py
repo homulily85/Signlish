@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from routes import dictionary
 from routes import lesson
@@ -18,6 +19,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.mount("/dictionary/thumbnails", StaticFiles(directory="data/thumbnails"), name="thumbnails")
 app.include_router(lesson.router)
 
 app.include_router(user_routes.router)
