@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from routes import text_to_sign
 from routes import dictionary
 from routes import lesson
 # from routes import sign_language_processor
@@ -27,6 +28,7 @@ app.include_router(user_routes.router)
 
 app.include_router(dictionary.router)
 
+app.include_router(text_to_sign.router)
 
 @app.get("/")
 async def root():
