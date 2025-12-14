@@ -26,9 +26,9 @@ const teamList: TeamProps[] = [
   {
     imageUrl: "https://bom.edu.vn/public/upload/2024/12/anime-nam-cute-chibi-1.webp",
     name: "Nguyen Anh",
-    position: "Product Manager",
+    position: "Member",
     description:
-      "Drives the product vision, aligns team goals, and ensures every feature delivers real user value.",
+      "Drives the product vision, aligns team goals, ensures every feature delivers real user value and reliable backend services.",
     socialNetworks: [
       { name: "Linkedin", url: "https://www.linkedin.com" },
       { name: "Facebook", url: "https://www.facebook.com/" },
@@ -38,7 +38,7 @@ const teamList: TeamProps[] = [
   {
     imageUrl: "https://bom.edu.vn/public/upload/2024/12/anime-nam-cute-chibi-3.webp",
     name: "Viet Anh",
-    position: "Tech Lead",
+    position: "Member",
     description:
       "Architects core systems, leads technical decisions, and ensures the platform stays scalable and efficient.",
     socialNetworks: [
@@ -50,7 +50,7 @@ const teamList: TeamProps[] = [
   {
     imageUrl: "https://bom.edu.vn/public/upload/2024/12/anime-nam-cute-chibi-4.webp",
     name: "Trung Duc",
-    position: "Frontend Developer",
+    position: "Member",
     description:
       "Crafts clean, intuitive user interfaces and ensures a smooth, responsive experience across all devices.",
     socialNetworks: [
@@ -61,7 +61,7 @@ const teamList: TeamProps[] = [
   {
     imageUrl: "https://bom.edu.vn/public/upload/2024/12/anime-nam-cute-chibi-5.webp",
     name: "Tien Dat",
-    position: "Backend Developer",
+    position: "Member",
     description:
       "Builds secure and reliable backend services, focusing on performance, API structure, and system integrity.",
     socialNetworks: [
@@ -72,7 +72,7 @@ const teamList: TeamProps[] = [
   {
     imageUrl: "https://bom.edu.vn/public/upload/2024/12/avatar-deo-khau-trang-chibi-1.webp",
     name: "An Khanh",
-    position: "Backend Developer",
+    position: "Member",
     description:
       "Develops core application logic and ensures seamless communication between services and the database.",
     socialNetworks: [
@@ -83,7 +83,7 @@ const teamList: TeamProps[] = [
   {
     imageUrl: "https://bom.edu.vn/public/upload/2024/12/chibi-nam-ngau-3.webp",
     name: "Thanh Tung",
-    position: "Backend Developer",
+    position: "Member",
     description:
       "Optimizes backend operations, improves system scalability, and supports the development of new features.",
     socialNetworks: [
@@ -131,14 +131,14 @@ export const Team = () => {
               key={name}
               className="bg-muted/50 relative mt-8 flex flex-col justify-center items-center"
             >
-              <CardHeader className="mt-8 flex justify-center items-center pb-2">
+              <CardHeader className="mt-8 flex flex-col items-center pb-2">
                 <img
                   src={imageUrl}
                   alt={`${name} ${position}`}
                   className="absolute -top-12 rounded-full w-24 h-24 aspect-square object-cover"
                 />
-                <CardTitle className="text-center">{name}</CardTitle>
-                <CardDescription className="text-primary">
+                <CardTitle className="text-center whitespace-nowrap">{name}</CardTitle>
+                <CardDescription className="text-primary whitespace-nowrap">
                   {position}
                 </CardDescription>
               </CardHeader>
