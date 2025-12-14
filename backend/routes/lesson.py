@@ -7,8 +7,45 @@ from models.user_progress import UserProgress
 from backend.models.question import Question
 from db import get_user_collection
 from typing import List
-
+from datetime import date, timedelta
 router = APIRouter()
+
+from datetime import date, timedelta
+
+
+from datetime import date, timedelta
+
+def update_user_streak(user_collection, user_id: str):
+    today = date.today()
+    user = user_collection.find_one({"id": user_id})
+
+    streak = user.get("streak", {})
+    last_active_str = streak.get("last_active_date")
+    current_streak = streak.get("current", 0)
+
+    if last_active_str:
+        last_active = date.fromisoformat(last_active_str)
+
+        if last_active == today:
+            # Học lại trong cùng ngày → không đổi
+            return
+        elif last_active == today - timedelta(days=1):
+            current_streak += 1
+        else:
+            current_streak = 1
+    else:
+        current_streak = 1
+
+    user_collection.update_one(
+        {"id": user_id},
+        {
+            "$set": {
+                "streak.current": current_streak,
+                "streak.last_active_date": today.isoformat()
+            }
+        }
+    )
+
 
 
 
@@ -85,6 +122,7 @@ async def complete_word(user_id: str, category: str, word_id: int):
     if word_id not in progress[category]:
         progress[category].append(word_id)
         user_collection.update_one({"id": user_id}, {"$set": {"progress": progress}})
+        update_user_streak(user_collection, user_id)
     return {"message": "Word marked as complete in lesson", "progress": progress}
 
 
@@ -136,6 +174,7 @@ async def save_question_progress(user_id: str, category: str):
     question_key = f"{category}_question"
     progress[question_key] = True
     user_collection.update_one({"id": user_id}, {"$set": {"progress": progress}})
+    update_user_streak(user_collection, user_id)
     return {"message": "Question for lesson marked as complete", "progress": progress}
 
 # Get question practice progress for all lessons (categories) for a user
@@ -166,3 +205,14 @@ async def get_flashcards_random(category: str):
     pyrandom.shuffle(flashcards)
     
     return flashcards
+
+@router.get("/user/streak")
+async def get_user_streak(user_id: str):
+    user_collection = get_user_collection()
+    user = user_collection.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return user.get("streak", {"current": 0})
+
+
