@@ -13,6 +13,7 @@ import Error403 from "./components/errors/403"
 import Error401 from "./components/errors/401"
 import Footer from "@/components/common/Footer"
 import Dictionary from "./pages/Dictionary"
+import Home from "./pages/Home"
 
 function AppContent() {
   return (
@@ -52,6 +53,7 @@ function AppContent() {
             </main>
           }
         >
+          <Route path="/dashboard/*" element={<Home />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<SignupPage />} />
           <Route path="/password_reset" element={<PasswordResetPage />} />
