@@ -11,6 +11,9 @@ venv/
 # Logs
 *.log
 
+# Pose files
+*.pose
+
 # Build outputs
 frontend/build/
 backend/__pycache__/
