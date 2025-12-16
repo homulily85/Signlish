@@ -1,12 +1,11 @@
 "use client"
 
-import React, {useCallback, useRef, useState} from "react"
+import React, {useCallback, useEffect, useRef, useState} from "react"
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs"
 import {Card, CardContent} from "@/components/ui/card"
 import {Button} from "@/components/ui/button"
 import {Textarea} from "@/components/ui/textarea"
 import {Camera, Loader2, Mic, RefreshCcw, Upload, Video} from "lucide-react"
-import {cn} from "@/lib/utils"
 
 type InputMode = "upload" | "webcam"
 
@@ -28,6 +27,9 @@ export default function TranslatePage() {
   const [signVideoUrl, setSignVideoUrl] = useState("")
 
   const lastTranslatedRef = useRef("");
+  const streamRef = useRef<MediaStream | null>(null);
+  const socketRef = useRef<WebSocket | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
   // Handle video file upload
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,15 +92,100 @@ export default function TranslatePage() {
     }
   }
 
-  // Simulate speech-to-text
-  const handleVoiceInput = useCallback(() => {
-    setIsListening(true)
+  const handleVoiceInput = () => {
+    if (isListening) {
+      stopMicrophone();
+    } else {
+      startMicrophone();
+    }
+  };
 
-    setTimeout(() => {
-      setInputText("I want to learn how to say thank you in sign language")
-      setIsListening(false)
-    }, 2000)
-  }, [])
+  const floatTo16BitPCM = (input: Float32Array) => {
+    const output = new Int16Array(input.length);
+    for (let i = 0; i < input.length; i++) {
+      const s = Math.max(-1, Math.min(1, input[i]));
+      output[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+    }
+    return output;
+  }
+
+  const startMicrophone = async () => {
+    try {
+      streamRef.current = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: false,
+      });
+      setIsListening(true);
+      const socket = new WebSocket("ws://localhost:8000/speech-to-text");
+      if (!socket) {
+        console.error("WebSocket not initialized");
+        return;
+      }
+      socketRef.current = socket;
+      socket.onopen = async () => {
+        console.log("WebSocket connected");
+        const audioContext = new AudioContext({sampleRate: 16000});
+        audioContextRef.current = audioContext;
+        const input = audioContext.createMediaStreamSource(streamRef.current as MediaStream);
+
+        // 4. Create a processor to intercept audio chunks
+        // bufferSize 4096 means we process ~0.25s of audio at a time
+        const processor = audioContext.createScriptProcessor(4096, 1, 1);
+
+        input.connect(processor);
+        processor.connect(audioContext.destination);
+
+        processor.onaudioprocess = (e) => {
+          const inputData = e.inputBuffer.getChannelData(0);
+          // Convert Float32 (browser) to Int16 (AWS)
+          const pcmData = floatTo16BitPCM(inputData);
+
+          if (socket.readyState === WebSocket.OPEN) {
+            socket.send(pcmData);
+          }
+        };
+      };
+
+      socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        // setInputText(inputText.concat(data.transcript))
+        setInputText(prev => prev + " " + data.transcript);
+      };
+    } catch (err) {
+      console.error("Error accessing microphone:", err);
+    }
+  };
+
+  const stopMicrophone = () => {
+    const stream = streamRef.current;
+    const socket = socketRef.current;
+    const audioContext = audioContextRef.current;
+
+    if (socket) {
+      socket.close()
+    }
+    if (audioContext) {
+      audioContext.close()
+    }
+
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+
+    streamRef.current = null;
+    socketRef.current = null;
+    audioContextRef.current = null;
+    setIsListening(false);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
 
   // Simulate text to sign language translation
   const handleTranslateText = useCallback(async () => {
@@ -314,10 +401,10 @@ export default function TranslatePage() {
                             size="icon"
                             variant="ghost"
                             onClick={handleVoiceInput}
-                            disabled={isListening}
-                            className={cn("absolute bottom-3 right-3", isListening && "text-red-500")}
+                            className={"absolute bottom-3 right-3"}
                         >
-                          {isListening ? <Mic className="h-5 w-5 animate-pulse"/> : <Mic className="h-5 w-5"/>}
+                          {isListening ? <Mic className="h-5 w-5 animate-pulse text-red-500 "/> :
+                              <Mic className="h-5 w-5"/>}
                         </Button>
                       </div>
                       <Button
