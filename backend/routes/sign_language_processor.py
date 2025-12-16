@@ -1,31 +1,17 @@
 import asyncio
-import os
+import json
 
 import cv2
-from dotenv import load_dotenv
-from fastapi import APIRouter, Request
-from openai import OpenAI
+import numpy as np
+from fastapi import APIRouter, Request, WebSocket, WebSocketDisconnect
 from service.SignLanguageProcessor.sign_language_processor_service import SignLanguageProcessor
-from service.SignLanguageProcessor.utils.camera_manager import CameraManager
-from starlette.responses import HTMLResponse, StreamingResponse
+from tensorflow.keras.models import load_model
 
-router = APIRouter(prefix="/processor", tags=["Users"])
+router = APIRouter()
 
-
-def get_client(env_path='.env'):
-    load_dotenv(dotenv_path=env_path)
-    return OpenAI(api_key=os.getenv("API_KEY"))
-
-
-client = get_client()  # Load your OpenAI client
-processor = SignLanguageProcessor(
-    model_path='./service/SignLanguageProcessor/models/best_model200.keras',
-    encoder_path='./service/SignLanguageProcessor/models/index_to_gloss_200.json',
-    client=client
-)
-
-camera_manager = CameraManager(device_index=0)
-
+global_model = load_model('./service/SignLanguageProcessor/models/best_model200.keras')
+with open('./service/SignLanguageProcessor/models/index_to_gloss_200.json', 'r') as f:
+    global_encoder = json.load(f)
 
 # Streaming generator used by the endpoint
 async def mjpeg_stream_generator(request: Request):
@@ -66,31 +52,26 @@ async def mjpeg_stream_generator(request: Request):
         cap.release()
 
 
-@router.get("/")
-async def read_root():
-    """Serve the main HTML page."""
-    with open("./service/SignLanguageProcessor/index.html") as f:
-        return HTMLResponse(content=f.read(), status_code=200)
-
-
-@router.get("/video_feed")
-async def video_feed(request: Request):
-    """Stream processed video with model annotations."""
-    return StreamingResponse(
-        mjpeg_stream_generator(request),
-        media_type="multipart/x-mixed-replace; boundary=frame"
+@router.websocket("/sign-to-text")
+async def websocket_predict(websocket: WebSocket):
+    await websocket.accept()
+    # Create a fresh processor for this user
+    session_processor = SignLanguageProcessor(
+        model=global_model,
+        encoder=global_encoder,
     )
 
+    try:
+        while True:
+            data = await websocket.receive_bytes()
+            nparr = np.frombuffer(data, np.uint8)
+            frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-@router.post("/interpret")
-async def interpret():
-    """Endpoint to trigger the LLM interpretation."""
-    processor.trigger_interpretation()
-    return {"status": "interpretation started"}
+            if frame is None: continue
 
+            result_data = session_processor.process_frame_get_results(frame)
 
-@router.post("/delete_last")
-async def delete_last():
-    """Endpoint to delete the last prediction."""
-    processor.delete_last_prediction()
-    return {"status": "last prediction deleted"}
+            await websocket.send_json(result_data)
+
+    except WebSocketDisconnect:
+        print("Client disconnected")
