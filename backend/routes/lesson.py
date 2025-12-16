@@ -4,7 +4,7 @@ import os
 from fastapi import APIRouter, HTTPException
 from models.lesson import Lesson
 from models.user_progress import UserProgress
-from backend.models.question import Question
+from models.question import Question
 from db import get_user_collection
 from typing import List
 from datetime import date, timedelta
