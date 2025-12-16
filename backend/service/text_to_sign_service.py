@@ -1,5 +1,6 @@
 import random
 import string
+import os
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -19,10 +20,12 @@ def text_to_sign(text: str):
         'signed': 'ase'
     }
 
+    os.makedirs("data/pose", exist_ok=True)
+
     try:
         query_string = urllib.parse.urlencode(params)
         full_url = f"{base_url}?{query_string}"
-        file_name = "data/" + generate_file_name()
+        file_name = "data/pose/" + generate_file_name()
 
         with urllib.request.urlopen(full_url) as response:
             data = response.read()
