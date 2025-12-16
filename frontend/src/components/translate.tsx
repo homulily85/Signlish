@@ -5,9 +5,8 @@ import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs"
 import {Card, CardContent} from "@/components/ui/card"
 import {Button} from "@/components/ui/button"
 import {Textarea} from "@/components/ui/textarea"
-import {Camera, Loader2, Mic, Pause, Play, RefreshCcw, Upload, Video} from "lucide-react"
+import {Camera, Loader2, Mic, RefreshCcw, Upload, Video} from "lucide-react"
 import {cn} from "@/lib/utils"
-import type {PoseViewerElement} from "@/types/type.ts";
 
 type InputMode = "upload" | "webcam"
 
@@ -27,27 +26,8 @@ export default function TranslatePage() {
   const [isListening, setIsListening] = useState(false)
   const [isTranslatingText, setIsTranslatingText] = useState(false)
   const [signVideoUrl, setSignVideoUrl] = useState("")
-  const poseRef = useRef<PoseViewerElement | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [showControls, setShowControls] = useState(true);
 
   const lastTranslatedRef = useRef("");
-
-
-  const togglePlay = () => {
-    if (!poseRef.current) return;
-
-    if (isPlaying) {
-      poseRef.current.pause?.();
-      setIsPlaying(false);
-      setShowControls(true);   // show overlay when paused
-    } else {
-      poseRef.current.play?.();
-      setIsPlaying(true);
-      setShowControls(false);  // hide overlay when playing
-    }
-  };
-
 
   // Handle video file upload
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -372,32 +352,12 @@ export default function TranslatePage() {
                             </p>
                           </div>
                       ) : (
-                          <div
-                              className="relative w-full group"
-                              onMouseMove={() => setShowControls(true)}
-                              onMouseLeave={() => isPlaying && setShowControls(false)}
-                          >
+                          <div className="relative w-full group">
                             <pose-viewer
-                                ref={poseRef}
                                 src={signVideoUrl}
-                                className="w-full h-auto rounded"
-                                autoplay={false}
+                                autoplay
+                                loop
                             />
-
-                            <div
-                                className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200
-      ${showControls ? "opacity-100 bg-black/30" : "opacity-0 pointer-events-none"}
-    `}
-                            >
-                              <Button
-                                  size="lg"
-                                  variant="secondary"
-                                  className="rounded-full h-16 w-16"
-                                  onClick={togglePlay}
-                              >
-                                {isPlaying ? <Pause/> : <Play/>}
-                              </Button>
-                            </div>
                           </div>
                       )}
                     </div>

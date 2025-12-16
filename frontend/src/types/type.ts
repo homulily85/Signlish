@@ -6,9 +6,3 @@ export type DictionaryItem = {
     source: string;
     category: string;
 }
-
-export interface PoseViewerElement extends HTMLElement {
-  play?: () => void;
-  pause?: () => void;
-  stop?: () => void;
-}
