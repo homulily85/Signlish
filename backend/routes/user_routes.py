@@ -11,7 +11,6 @@ from fastapi import Depends
 from models.user_model import User
 from pydantic import BaseModel
 from schemas.user import LoginRequest, UserInDB, UserCreate
-from schemas.user import UserCreate, UserInDB
 from service.user_service import create_user
 from service.user_service import create_user, get_user_by_email, get_user_by_name
 
