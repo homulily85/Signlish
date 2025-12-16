@@ -13,7 +13,8 @@ import Error403 from "./components/errors/403"
 import Error401 from "./components/errors/401"
 import Footer from "@/components/common/Footer"
 import Dictionary from "./pages/Dictionary"
-import TranslatePage from "./components/translate"
+import TranslatePage from "./pages/Translate"
+import Home from "./pages/Home"
 
 function AppContent() {
   return (
