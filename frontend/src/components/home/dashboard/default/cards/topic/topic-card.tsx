@@ -20,17 +20,15 @@ export default function TopicCard({
 }: TopicCardProps) {
   return (
     <Card className="overflow-hidden transition hover:shadow-md">
-      {/* IMAGE */}
       <div className="relative h-40 w-full">
         <img
           src={image}
           alt={title}
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full"
           loading="lazy"
         />
       </div>
 
-      {/* CONTENT */}
       <CardContent className="space-y-3 p-4">
         <CardTitle className="text-base line-clamp-1">
           {title}

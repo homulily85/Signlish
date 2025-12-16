@@ -15,6 +15,7 @@ import Footer from "@/components/common/Footer"
 import Dictionary from "./pages/Dictionary"
 import TranslatePage from "./pages/Translate"
 import Home from "./pages/Home"
+import ExploreCourses from "./pages/ExploreCourses"
 
 function AppContent() {
   return (
@@ -56,6 +57,8 @@ function AppContent() {
             </main>
           }
         >
+          <Route path="/explore" element={<ExploreCourses />} />
+          <Route path="/home" element={<Home />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<SignupPage />} />
           <Route path="/password_reset" element={<PasswordResetPage />} />
