@@ -56,7 +56,6 @@ function AppContent() {
             </main>
           }
         >
-          <Route path="/dashboard/*" element={<Home />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<SignupPage />} />
           <Route path="/password_reset" element={<PasswordResetPage />} />

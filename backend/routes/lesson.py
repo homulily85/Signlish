@@ -1,19 +1,18 @@
-import random as pyrandom
 import csv
 import os
+import random as pyrandom
+from typing import List
+
+from db import get_user_collection
 from fastapi import APIRouter, HTTPException
 from models.lesson import Lesson
+from models.question import Question
 from models.user_progress import UserProgress
-from backend.models.question import Question
-from db import get_user_collection
-from typing import List
-from datetime import date, timedelta
+
 router = APIRouter()
 
 from datetime import date, timedelta
 
-
-from datetime import date, timedelta
 
 def update_user_streak(user_collection, user_id: str):
     today = date.today()
@@ -47,8 +46,6 @@ def update_user_streak(user_collection, user_id: str):
     )
 
 
-
-
 # Load words from CSV and organize by category (lesson)
 def load_words_by_category():
     csv_path = os.path.join(os.path.dirname(__file__), '../utils/words.csv')
@@ -69,9 +66,9 @@ def load_words_by_category():
             lessons_by_category[cat].append(lesson)
     return lessons_by_category
 
+
 lessons_by_category = load_words_by_category()
 all_categories = list(lessons_by_category.keys())
-
 
 
 # List all lessons (categories)
@@ -79,13 +76,13 @@ all_categories = list(lessons_by_category.keys())
 async def get_lessons():
     return all_categories
 
+
 # List all words in a lesson (category)
 @router.get("/lessons/{category}", response_model=List[Lesson])
 async def get_words_in_lesson(category: str):
     if category not in lessons_by_category:
         raise HTTPException(status_code=404, detail="Lesson (category) not found")
     return lessons_by_category[category]
-
 
 
 # Get progress for all lessons (categories) for a user
@@ -126,7 +123,6 @@ async def complete_word(user_id: str, category: str, word_id: int):
     return {"message": "Word marked as complete in lesson", "progress": progress}
 
 
-
 # Load questions from questions.csv for questions
 def load_questions():
     csv_path = os.path.join(os.path.dirname(__file__), '../utils/questions.csv')
@@ -144,7 +140,9 @@ def load_questions():
             })
     return questions
 
+
 questions_data = load_questions()
+
 
 # Question: for each lesson (category), provide a question at the end
 @router.get("/lessons/{category}/question", response_model=Question)
@@ -162,6 +160,7 @@ async def get_lesson_question(category: str):
         category=q['category']
     )
 
+
 # Save question progress for correct answer per lesson
 @router.post("/lessons/{category}/question/progress")
 async def save_question_progress(user_id: str, category: str):
@@ -176,6 +175,7 @@ async def save_question_progress(user_id: str, category: str):
     user_collection.update_one({"id": user_id}, {"$set": {"progress": progress}})
     update_user_streak(user_collection, user_id)
     return {"message": "Question for lesson marked as complete", "progress": progress}
+
 
 # Get question practice progress for all lessons (categories) for a user
 @router.get("/user/question_progress", response_model=dict)
@@ -197,14 +197,15 @@ async def get_question_progress(user_id: str):
 async def get_flashcards_random(category: str):
     if category not in lessons_by_category:
         raise HTTPException(status_code=404, detail="Lesson (category) not found")
-    
+
     # Lấy tất cả các từ trong category đã chọn
     flashcards = lessons_by_category[category]
-    
+
     # Trộn flashcards theo thứ tự ngẫu nhiên
     pyrandom.shuffle(flashcards)
-    
+
     return flashcards
+
 
 @router.get("/user/streak")
 async def get_user_streak(user_id: str):
@@ -214,5 +215,3 @@ async def get_user_streak(user_id: str):
         raise HTTPException(status_code=404, detail="User not found")
 
     return user.get("streak", {"current": 0})
-
-
