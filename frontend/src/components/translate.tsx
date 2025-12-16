@@ -45,19 +45,48 @@ export default function TranslatePage() {
     }
   }
 
-  // Simulate video translation
-  const handleTranslateVideo = useCallback(() => {
-    if (!videoFile) return
+  const handleUpload = useCallback(async () => {
+    if (!videoFile) return;
 
-    setIsTranslatingVideo(true)
-    setTranslatedText("")
+    setIsTranslatingVideo(true);
 
-    // Simulate translation process
-    setTimeout(() => {
-      setTranslatedText("Hello, my name is Sarah. I am learning sign language. Thank you for watching.")
-      setIsTranslatingVideo(false)
-    }, 2000)
-  }, [videoFile])
+    try {
+      const formData = new FormData();
+      formData.append("file", videoFile);
+
+      const response = await fetch(
+          "http://localhost:8000/sign-to-text/video",
+          {
+            method: "POST",
+            body: formData,
+          }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (Array.isArray(data.prediction)) {
+        const cleaned = data.prediction.map((s: string) =>
+            s.toLowerCase().replace(/\d$/, "")
+        );
+
+        setTranslatedText(cleaned.join(" "));
+      }
+    } catch (error) {
+      console.error("Error uploading video:", error);
+    } finally {
+      setIsTranslatingVideo(false);
+    }
+  }, [videoFile]);
+
+
+  const handleTranslateVideo = useCallback(async () => {
+    if (!videoFile) return;
+    await handleUpload();
+  }, [videoFile, handleUpload]);
 
   const startWebcam = async () => {
     try {
@@ -71,7 +100,7 @@ export default function TranslatePage() {
         videoRef.current.srcObject = stream;
       }
 
-      const socket = new WebSocket("ws://localhost:8000/sign-to-text");
+      const socket = new WebSocket("ws://localhost:8000/sign-to-text/stream");
       socketRef.current = socket;
 
       socket.onopen = () => {
@@ -304,9 +333,13 @@ export default function TranslatePage() {
 
           <Tabs defaultValue="sign-to-text" className="w-full"
                 onValueChange={(value) => {
+                  setTranslatedText("")
+                  setRealtimeText("")
                   if (value !== "text-to-sign" && isListening) {
-                    console.log("Stopping microphone because tab changed")
                     stopMicrophone()
+                  }
+                  if (value !== "sign-to-text" && isWebcamActive) {
+                    stopWebcam()
                   }
                 }}>
             <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
@@ -327,6 +360,11 @@ export default function TranslatePage() {
                             variant={inputMode === "upload" ? "default" : "outline"}
                             size="sm"
                             onClick={() => {
+                              if (isWebcamActive) {
+                                stopWebcam()
+                                setTranslatedText("")
+                                setRealtimeText("")
+                              }
                               setInputMode("upload")
                               setIsWebcamActive(false)
                               setRealtimeText("")
