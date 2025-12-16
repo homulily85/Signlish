@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
 import {
   LineChart,
   Line,
   ResponsiveContainer,
   Tooltip,
   XAxis,
+  LabelList,
 } from "recharts";
 
 import {
@@ -30,19 +30,8 @@ export default function WeeklyStudyTimeCard({
 }: {
   className?: string;
 }) {
-  const [isDark, setIsDark] = useState(false);
+  const totalMinutes = data.reduce((sum, d) => sum + d.minutes, 0);
 
-  useEffect(() => {
-    const checkDarkMode = () => {
-      setIsDark(document.documentElement.classList.contains("dark"));
-    };
-    checkDarkMode();
-    const observer = new MutationObserver(checkDarkMode);
-    observer.observe(document.documentElement, { attributes: true });
-    return () => observer.disconnect();
-  }, []);
-
-  const lineColor = isDark ? "#fff" : "#000";
   return (
     <Card className={className}>
       <CardHeader>
@@ -50,7 +39,7 @@ export default function WeeklyStudyTimeCard({
           Weekly Study Time
         </CardTitle>
         <CardDescription>
-          Time spent learning Signlish this week ({130} minutes).
+          Time spent learning Signlish this week ({totalMinutes} minutes).
         </CardDescription>
       </CardHeader>
 
@@ -59,27 +48,36 @@ export default function WeeklyStudyTimeCard({
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={data}
-              margin={{ top: 10, right: 16, left: 0, bottom: 0 }}
+              margin={{ top: 24, right: 16, left: 0, bottom: 0 }}
             >
-              {/* X AXIS: MON → SUN */}
+              {/* X AXIS */}
               <XAxis
                 dataKey="day"
                 tickLine={false}
                 padding={{ left: 16, right: 16 }}
                 axisLine={false}
-                className="text-xs text-muted-foreground"
+                tick={{
+                  fontSize: 12,
+                  fill: "hsl(var(--muted-foreground))",
+                }}
               />
 
-              {/* TOOLTIP */}
+              {/* TOOLTIP – THEME AWARE */}
               <Tooltip
+                cursor={{ stroke: "hsl(var(--border))" }}
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     return (
-                      <div style={{ borderRadius: "8px", padding: "8px 12px" }}>
-                        <div style={{ fontSize: "14px", fontWeight: "500", color: isDark ? "#fff" : "#000" }}>
+                      <div
+                        className="rounded-md bg-background px-3 py-2 shadow-md"
+                        style={{
+                          border: "1px solid hsl(var(--border))",
+                        }}
+                      >
+                        <div className="text-sm font-medium text-foreground">
                           {payload[0].payload.day}
                         </div>
-                        <div style={{ fontSize: "14px", color: isDark ? "#ccc" : "#666" }}>
+                        <div className="text-sm text-muted-foreground">
                           {payload[0].value} minutes
                         </div>
                       </div>
@@ -89,15 +87,30 @@ export default function WeeklyStudyTimeCard({
                 }}
               />
 
-              {/* SINGLE LINE */}
+              {/* LINE */}
               <Line
                 type="monotone"
                 dataKey="minutes"
-                stroke={lineColor}
+                stroke="hsl(var(--foreground))"
                 strokeWidth={2}
-                dot={{ fill: lineColor, r: 4 }}
-                activeDot={{ r: 6 }}
-              />
+                dot={{
+                  r: 4,
+                  fill: "hsl(var(--foreground))",
+                }}
+                activeDot={{
+                  r: 6,
+                  fill: "hsl(var(--foreground))",
+                }}
+              >
+                {/* LABEL ON DOT */}
+                <LabelList
+                  dataKey="minutes"
+                  position="top"
+                  fill="hsl(var(--foreground))"
+                  fontSize={12}
+                  offset={8}
+                />
+              </Line>
             </LineChart>
           </ResponsiveContainer>
         </div>

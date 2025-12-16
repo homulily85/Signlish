@@ -1,5 +1,11 @@
-import { useEffect, useState } from "react";
-import { Bar, BarChart, ResponsiveContainer, Tooltip} from "recharts";
+import {
+  Bar,
+  BarChart,
+  ResponsiveContainer,
+  XAxis,
+  LabelList,
+  Tooltip,
+} from "recharts";
 
 import {
   Card,
@@ -9,60 +15,72 @@ import {
 } from "@/components/ui/card";
 
 const data = [
-  { learned: 12 },
-  { learned: 18 },
-  { learned: 10 },
-  { learned: 22 },
-  { learned: 15 },
-  { learned: 20 },
-  { learned: 25 },
-  { learned: 30 },
+  { day: "Mon", learned: 12 },
+  { day: "Tue", learned: 18 },
+  { day: "Wed", learned: 10 },
+  { day: "Thu", learned: 22 },
+  { day: "Fri", learned: 15 },
+  { day: "Sat", learned: 20 },
+  { day: "Sun", learned: 25 },
 ];
 
 export default function LearningProgressCard() {
-  const [isDark, setIsDark] = useState(false);
+  const totalThisWeek = data.reduce((sum, d) => sum + d.learned, 0);
+  const totalLastWeek = 122;
+  const percentChange = Math.round(
+    ((totalThisWeek - totalLastWeek) / totalLastWeek) * 100
+  );
 
-  useEffect(() => {
-    const checkDarkMode = () => {
-      setIsDark(document.documentElement.classList.contains("dark"));
-    };
-    checkDarkMode();
-    const observer = new MutationObserver(checkDarkMode);
-    observer.observe(document.documentElement, { attributes: true });
-    return () => observer.disconnect();
-  }, []);
-
-  const barColor = isDark ? "#fff" : "#000";
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader className="pb-2">
         <CardTitle className="text-base">
-          Signs Learned
+          Signs Learned (7 days)
         </CardTitle>
       </CardHeader>
 
       <CardContent>
         <div className="text-2xl font-bold">
-          152 signs
+          {totalThisWeek} signs
         </div>
 
         <p className="text-xs text-muted-foreground">
-          +24% compared to last month
+          {percentChange > 0 ? "+" : ""}
+          {percentChange}% compared to last week
         </p>
 
-        <div className="mt-4 h-[80px]">
+        <div className="mt-4 h-[120px] text-foreground">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data}>
-              {/* TOOLTIP */}
+              <XAxis
+                dataKey="day"
+                tick={{
+                  fontSize: 12,
+                  fill: "hsl(var(--muted-foreground))",
+                }}
+                axisLine={false}
+                tickLine={false}
+              />
+
               <Tooltip
-                cursor={{ fill: isDark ? "#333" : "#f0f0f0" }}
+                cursor={{ fill: "hsl(var(--muted))" }}
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
+                    const day = payload[0].payload.day;
+                    const value = payload[0].value;
+
                     return (
-                      <div style={{ borderRadius: "8px", padding: "8px 12px" }}>
-                        <div style={{ fontSize: "14px", color: isDark ? "#fff" : "#000" }}>
-                          {payload[0].value} signs
-                        </div>
+                      <div
+                        className="flex items-center gap-2 rounded-full bg-background px-3 py-1 shadow-md"
+                        style={{ border: "1px solid hsl(var(--border))" }}
+                      >
+                        <span className="h-2 w-2 rounded-sm bg-current" />
+                        <span className="text-xs text-muted-foreground">
+                          {day}
+                        </span>
+                        <span className="text-xs font-medium text-foreground">
+                          {value}
+                        </span>
                       </div>
                     );
                   }
@@ -72,12 +90,20 @@ export default function LearningProgressCard() {
 
               <Bar
                 dataKey="learned"
-                radius={[4, 4, 0, 0]}
-                fill={barColor}
-              />
+                radius={[6, 6, 0, 0]}
+                fill="currentColor"
+              >
+                <LabelList
+                  dataKey="learned"
+                  position="top"
+                  fill="currentColor"
+                  fontSize={12}
+                />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
+
       </CardContent>
     </Card>
   );

@@ -13,16 +13,23 @@ import {
   isSameDay,
   startOfMonth,
   subDays,
+  addMonths,
+  subMonths,
+  isSameMonth,
 } from "date-fns";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const STORAGE_KEY = "signlish-checkins";
 
 export default function StreakCalendar() {
   const today = new Date();
-  const [checkIns, setCheckIns] = useState<Date[]>([]);
 
-  /* ===== LOAD CHECK-IN FROM LOCALSTORAGE ===== */
+  const [checkIns, setCheckIns] = useState<Date[]>([]);
+  const [currentMonth, setCurrentMonth] = useState<Date>(
+    startOfMonth(today)
+  );
+
   useEffect(() => {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
@@ -30,7 +37,6 @@ export default function StreakCalendar() {
     }
   }, []);
 
-  /* ===== SAVE CHECK-IN ===== */
   const saveCheckIn = (date: Date) => {
     const updated = [...checkIns, date];
     setCheckIns(updated);
@@ -40,19 +46,15 @@ export default function StreakCalendar() {
     );
   };
 
-  /* ===== CHECK IF DAY IS CHECKED ===== */
   const isCheckedIn = (day: Date) =>
     checkIns.some((d) => isSameDay(d, day));
 
-  /* ===== AUTO CHECK-IN TODAY (DEMO) ===== */
   useEffect(() => {
     if (!isCheckedIn(today)) {
       saveCheckIn(today);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* ===== STREAK CALCULATION ===== */
   const calculateStreaks = () => {
     let current = 0;
     let longest = 0;
@@ -79,11 +81,15 @@ export default function StreakCalendar() {
 
   const { current, longest } = calculateStreaks();
 
-  /* ===== CALENDAR ===== */
   const daysInMonth = eachDayOfInterval({
-    start: startOfMonth(today),
-    end: endOfMonth(today),
+    start: startOfMonth(currentMonth),
+    end: endOfMonth(currentMonth),
   });
+
+  const isFutureMonth = isAfter(
+    startOfMonth(addMonths(currentMonth, 1)),
+    today
+  );
 
   return (
     <Card>
@@ -94,29 +100,46 @@ export default function StreakCalendar() {
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* MONTH */}
-        <div className="text-center text-sm font-medium">
-          {format(today, "MMMM yyyy")}
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+            className="rounded p-1 hover:bg-muted"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+
+          <div className="text-sm font-medium">
+            {format(currentMonth, "MMMM yyyy")}
+          </div>
+
+          <button
+            onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+            disabled={isFutureMonth}
+            className="rounded p-1 hover:bg-muted disabled:opacity-30"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
         </div>
 
-        {/* WEEK DAYS */}
         <div className="grid grid-cols-7 text-center text-xs text-muted-foreground">
           {["M", "T", "W", "T", "F", "S", "S"].map((d) => (
             <div key={d}>{d}</div>
           ))}
         </div>
 
-        {/* CALENDAR GRID */}
         <div className="grid grid-cols-7 gap-2">
           {Array.from({
-            length: (getDay(startOfMonth(today)) + 6) % 7,
+            length:
+              (getDay(startOfMonth(currentMonth)) + 6) % 7,
           }).map((_, i) => (
             <div key={`empty-${i}`} />
           ))}
 
           {daysInMonth.map((day) => {
             const checked = isCheckedIn(day);
-            const future = isAfter(day, today);
+            const future =
+              isAfter(day, today) &&
+              isSameMonth(day, today);
 
             let style =
               "bg-muted text-muted-foreground";
@@ -139,7 +162,6 @@ export default function StreakCalendar() {
           })}
         </div>
 
-        {/* STREAK INFO */}
         <div className="flex justify-between text-sm pt-2">
           <span>🔥 Current streak</span>
           <span className="font-bold">{current} days</span>

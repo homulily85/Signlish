@@ -18,7 +18,7 @@ export const topics: Topic[] = [
   {
     id: "family",
     title: "Family & Relatives",
-    image: IMAGE_URL,
+    image: "https://img.freepik.com/free-vector/open-hand-vector-illustration_1308-169733.jpg?semt=ais_hybrid&w=740&q=80",
     lessons: 12,
     hours: 3,
   },
@@ -32,7 +32,7 @@ export const topics: Topic[] = [
   {
     id: "emotions",
     title: "Emotions & Feelings",
-    image: IMAGE_URL,
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT2Z_8VmxfR4Otm9K-0b6NKmPDlxWzIykQ_tg&s",
     lessons: 8,
     hours: 2,
   },

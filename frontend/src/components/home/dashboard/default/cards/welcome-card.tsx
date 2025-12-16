@@ -9,6 +9,8 @@ type WelcomeCardProps = {
   name?: string;
 };
 
+import loginIllustration from "../../../../../assets/hello.svg";
+
 export default function WelcomeCard({
   name = "Andrew",
 }: WelcomeCardProps) {
@@ -17,7 +19,6 @@ export default function WelcomeCard({
   return (
     <Card className="relative h-full overflow-hidden flex">
       <CardContent className="flex flex-1 items-center justify-between gap-6 p-6">
-        {/* LEFT CONTENT */}
         <div className="max-w-xl space-y-3">
           <h2 className="text-2xl font-semibold">
             Hi, {name} 👋
@@ -33,16 +34,15 @@ export default function WelcomeCard({
 
           <Button
             className="mt-2"
-            onClick={() => navigate("/dashboard/pages/courses")}
+            onClick={() => navigate("/explore")}
           >
             Explore Course
           </Button>
         </div>
 
-        {/* RIGHT IMAGE */}
         <div className="hidden md:flex items-center">
           <img
-            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMr0JdGvnTSxXMPL7-fZairwpXxWfeOYZM1Q&s"
+            src={loginIllustration}
             alt="Welcome illustration"
             className="h-80 w-100 object-contain"
           />

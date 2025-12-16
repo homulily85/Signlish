@@ -27,8 +27,11 @@ export default function Header() {
       setIsDark(document.documentElement.classList.contains("dark"));
     };
     checkDarkMode();
-    
-    const savedTheme = localStorage.getItem("vite-ui-theme") as "light" | "dark" | "system" | null;
+
+    const savedTheme = localStorage.getItem(
+      "vite-ui-theme"
+    ) as "light" | "dark" | "system" | null;
+
     if (savedTheme) {
       setTheme(savedTheme);
     }
@@ -40,7 +43,10 @@ export default function Header() {
     setTheme(newTheme);
 
     if (newTheme === "system") {
-      const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const systemDark = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      ).matches;
+
       if (systemDark) {
         html.classList.add("dark");
         setIsDark(true);
@@ -91,46 +97,48 @@ export default function Header() {
         </SheetContent>
       </Sheet>
 
-      <div className="flex-1">
-        <Search />
+      <div className="ml-auto flex items-center gap-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon" className="rounded-full">
+              {isDark ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Theme</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setThemeMode("light")}>
+              Light
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setThemeMode("dark")}>
+              Dark
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setThemeMode("system")}>
+              System
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <img
+              src="/images/avatars/1.png"
+              className="h-10 w-10 cursor-pointer rounded-full"
+              alt="avatar"
+            />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>Settings</DropdownMenuItem>
+            <DropdownMenuItem>Logout</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="icon" className="rounded-full">
-            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Theme</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setThemeMode("light")}>
-            Light
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setThemeMode("dark")}>
-            Dark
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setThemeMode("system")}>
-            System
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <img
-            src="/images/avatars/1.png"
-            className="h-10 w-10 cursor-pointer rounded-full"
-            alt="avatar"
-          />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem>Settings</DropdownMenuItem>
-          <DropdownMenuItem>Logout</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
     </header>
   );
 }

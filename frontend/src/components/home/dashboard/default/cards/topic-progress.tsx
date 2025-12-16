@@ -12,28 +12,35 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-type TopicProgressProps = {
-  learned?: number;
-  total?: number;
+type LessonProgressProps = {
+  completedLessons?: number; // số lesson đã học
+  totalLessons?: number;     // tổng số lesson
 };
 
-export default function TopicProgressChart({
-  learned = 10,
-  total = 100,
-}: TopicProgressProps) {
-  const remaining = Math.max(total - learned, 0);
-  const percentage = Math.round((learned / total) * 100);
+export default function LessonProgressChart({
+  completedLessons = 24,
+  totalLessons = 80,
+}: LessonProgressProps) {
+  const remainingLessons = Math.max(
+    totalLessons - completedLessons,
+    0
+  );
+
+  const percentage =
+    totalLessons > 0
+      ? Math.round((completedLessons / totalLessons) * 100)
+      : 0;
 
   const data = [
-    { name: "Learned", value: learned },
-    { name: "Remaining", value: remaining },
+    { name: "Completed", value: completedLessons },
+    { name: "Remaining", value: remainingLessons },
   ];
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-base">
-          Topic Progress
+          Lesson Progress
         </CardTitle>
       </CardHeader>
 
@@ -48,9 +55,13 @@ export default function TopicProgressChart({
                 innerRadius={40}
                 outerRadius={55}
                 paddingAngle={3}
+                startAngle={90}
+                endAngle={-270}
               >
-                <Cell fill="#000" />
-                <Cell fill="#f0f0f0" />
+                {/* Completed */}
+                <Cell fill="#000000" />
+                {/* Remaining */}
+                <Cell fill="#e5e7eb" />
               </Pie>
             </PieChart>
           </ResponsiveContainer>
@@ -69,13 +80,18 @@ export default function TopicProgressChart({
         {/* ===== INFO ===== */}
         <div className="space-y-2">
           <div className="text-sm">
-            <span className="font-medium">{learned}</span> topics learned
+            <span className="font-medium">
+              {completedLessons}
+            </span>{" "}
+            lessons completed
           </div>
+
           <div className="text-sm text-muted-foreground">
-            {remaining} topics remaining
+            {remainingLessons} lessons remaining
           </div>
+
           <p className="text-xs text-muted-foreground">
-            Keep learning sign language topics to complete your course 🎯
+            Complete lessons across all topics to finish the course 🎯
           </p>
         </div>
       </CardContent>
