@@ -230,7 +230,13 @@ export default function TranslatePage() {
             <p className="text-muted-foreground">Learn and translate sign language with ease</p>
           </header>
 
-          <Tabs defaultValue="sign-to-text" className="w-full">
+          <Tabs defaultValue="sign-to-text" className="w-full"
+                onValueChange={(value) => {
+                  if (value !== "text-to-sign" && isListening) {
+                    console.log("Stopping microphone because tab changed")
+                    stopMicrophone()
+                  }
+                }}>
             <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
               <TabsTrigger value="sign-to-text">Sign to Text</TabsTrigger>
               <TabsTrigger value="text-to-sign">Text to Sign</TabsTrigger>
