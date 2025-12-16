@@ -13,7 +13,7 @@ import Error403 from "./components/errors/403"
 import Error401 from "./components/errors/401"
 import Footer from "@/components/common/Footer"
 import Dictionary from "./pages/Dictionary"
-import Home from "./pages/Home"
+import TranslatePage from "./components/translate"
 
 function AppContent() {
   return (
@@ -43,6 +43,8 @@ function AppContent() {
             }
           />
           {/* Thêm các route chính khác cần footer vào đây */}
+          <Route path="/dictionary" element={<Dictionary />} />
+          <Route path="/translate" element={<TranslatePage />} />
         </Route>
 
         {/* Nhóm các trang KHÔNG CÓ Footer */}
@@ -53,7 +55,6 @@ function AppContent() {
             </main>
           }
         >
-          <Route path="/dashboard/*" element={<Home />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<SignupPage />} />
           <Route path="/password_reset" element={<PasswordResetPage />} />
@@ -62,7 +63,6 @@ function AppContent() {
           <Route path="403" element={<Error403 />} />
           <Route path="401" element={<Error401 />} />
           <Route path="*" element={<Error404 />} />
-          <Route path="/dictionary" element={<Dictionary />} />
         </Route>
       </Routes>
     </div>
