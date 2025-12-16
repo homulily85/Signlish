@@ -6,6 +6,7 @@ type Topic = {
   image: string;
   lessons: number;
   hours: number;
+  progress?: number;
 };
 
 type TopicGridProps = {
@@ -30,6 +31,7 @@ export default function TopicGrid({ topics }: TopicGridProps) {
           image={topic.image}
           lessons={topic.lessons}
           hours={topic.hours}
+          progress={topic.progress}
         />
       ))}
     </div>

@@ -49,31 +49,28 @@ export default function LearningProgressCard() {
           {percentChange}% compared to last week
         </p>
 
-        <div className="mt-4 h-[120px] text-foreground">
+        {/* Wrapper quyết định màu cho SVG */}
+        <div className="mt-4 h-[120px] text-[hsl(var(--chart-1))]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data}>
+              {/* X AXIS – KHÔNG FIX MÀU */}
               <XAxis
                 dataKey="day"
-                tick={{
-                  fontSize: 12,
-                  fill: "hsl(var(--muted-foreground))",
-                }}
                 axisLine={false}
                 tickLine={false}
+                tick={{ fontSize: 12 }}
               />
 
+              {/* TOOLTIP – TẮT CURSOR OVERLAY */}
               <Tooltip
-                cursor={{ fill: "hsl(var(--muted))" }}
+                cursor={false}
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     const day = payload[0].payload.day;
                     const value = payload[0].value;
 
                     return (
-                      <div
-                        className="flex items-center gap-2 rounded-full bg-background px-3 py-1 shadow-md"
-                        style={{ border: "1px solid hsl(var(--border))" }}
-                      >
+                      <div className="flex items-center gap-2 rounded-full bg-background px-3 py-1 shadow-md border border-border">
                         <span className="h-2 w-2 rounded-sm bg-current" />
                         <span className="text-xs text-muted-foreground">
                           {day}
@@ -88,6 +85,7 @@ export default function LearningProgressCard() {
                 }}
               />
 
+              {/* BAR */}
               <Bar
                 dataKey="learned"
                 radius={[6, 6, 0, 0]}
@@ -103,7 +101,6 @@ export default function LearningProgressCard() {
             </BarChart>
           </ResponsiveContainer>
         </div>
-
       </CardContent>
     </Card>
   );
