@@ -137,29 +137,33 @@ export default function StreakCalendar() {
 
           {daysInMonth.map((day) => {
             const checked = isCheckedIn(day);
-            const future =
-              isAfter(day, today) &&
-              isSameMonth(day, today);
+            const isFuture = isAfter(day, today);
+            const isToday = isSameDay(day, today);
 
-            let style =
-              "bg-muted text-muted-foreground";
+            let style = "bg-muted text-muted-foreground";
 
-            if (checked) {
-              style = "bg-orange-500 text-white"; // 🔥
-            } else if (!future) {
-              style = "bg-sky-400 text-white"; // 🧊
+            if (isToday || checked) {
+              style = "bg-[var(--chart-1)] text-white";
+            } else if (!isFuture) {
+              style = "bg-[var(--chart-2)] text-white";
             }
 
             return (
               <div
                 key={day.toISOString()}
-                className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium ${style}
-                ${isSameDay(day, today) ? "ring-2 ring-primary" : ""}`}
+                className={`flex h-9 w-9 items-center justify-center
+          rounded-full text-sm font-medium
+          transition-colors duration-200
+          ${style}
+          ${isToday ? "ring-2 ring-primary ring-offset-2" : ""}
+        `}
               >
                 {format(day, "d")}
               </div>
             );
           })}
+
+
         </div>
 
         <div className="flex justify-between text-sm pt-2">

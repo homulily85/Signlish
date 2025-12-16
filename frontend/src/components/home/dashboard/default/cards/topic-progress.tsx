@@ -13,8 +13,8 @@ import {
 } from "@/components/ui/card";
 
 type LessonProgressProps = {
-  completedLessons?: number; // số lesson đã học
-  totalLessons?: number;     // tổng số lesson
+  completedLessons?: number;
+  totalLessons?: number;
 };
 
 export default function LessonProgressChart({
@@ -47,6 +47,11 @@ export default function LessonProgressChart({
       <CardContent className="flex items-center gap-6">
         {/* ===== DONUT ===== */}
         <div className="relative h-[120px] w-[120px] shrink-0">
+          {/* 
+            Wrapper quyết định màu cho từng phần
+            chart-1  → completed
+            muted     → remaining
+          */}
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -59,16 +64,17 @@ export default function LessonProgressChart({
                 endAngle={-270}
               >
                 {/* Completed */}
-                <Cell fill="#000000" />
+                <Cell className="text-[hsl(var(--chart-1))]" fill="currentColor" />
+
                 {/* Remaining */}
-                <Cell fill="#e5e7eb" />
+                <Cell className="text-muted" fill="currentColor" />
               </Pie>
             </PieChart>
           </ResponsiveContainer>
 
           {/* CENTER TEXT */}
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-            <div className="text-lg font-bold">
+            <div className="text-lg font-bold text-foreground">
               {percentage}%
             </div>
             <div className="text-[11px] text-muted-foreground">
@@ -80,7 +86,7 @@ export default function LessonProgressChart({
         {/* ===== INFO ===== */}
         <div className="space-y-2">
           <div className="text-sm">
-            <span className="font-medium">
+            <span className="font-medium text-foreground">
               {completedLessons}
             </span>{" "}
             lessons completed
