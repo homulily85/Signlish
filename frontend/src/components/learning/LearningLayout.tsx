@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import LearningSidebar from "@/components/learning/LearningSidebar";
 import LessonContent from "@/components/learning/LessonContent";
-import PracticeSection from "@/components/learning/PracticeSection";
+import PracticeSection from "@/components/learning/PracticeSection/PracticeSection";
 import { useTopic } from "@/hooks/useTopic";
 
 const API_BASE = "http://localhost:8000";
@@ -83,24 +83,16 @@ export default function LearningLayout() {
 
   const completeLesson = async (lessonId: string) => {
     try {
-      // In ra để kiểm tra
-      console.log(topic.id, lessonId, email);
-
-      // Convert lessonId thành số
       const lessonIdNum = Number(lessonId);
-
-      // Kiểm tra nếu lessonId không phải là số hợp lệ
       if (isNaN(lessonIdNum)) {
         console.error("Invalid lesson ID");
         return;
       }
-      // Gửi request POST với URL đúng và body chỉ có category
       await fetch(`${API_BASE}/lessons/users/${email}/progress/${String(topic.id)}/lessons/${lessonIdNum}/complete`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
 
-      // Cập nhật trạng thái bài học đã hoàn thành
       setCompletedLessonIds((prev) => new Set(prev).add(lessonIdNum));
 
     } catch (err) {
