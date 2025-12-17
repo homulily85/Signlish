@@ -4,6 +4,7 @@ export type Topic = {
   image: string;
   lessons: number;
   hours: number;
+  progress?: number; 
 };
 
 const IMAGE_URL = "https://static.vecteezy.com/system/resources/thumbnails/049/590/642/small/parents-and-children-clipart-happy-family-cartoon-illustration-vector.jpg";
@@ -14,13 +15,15 @@ export const topics: Topic[] = [
     image: IMAGE_URL,
     lessons: 10,
     hours: 2,
+    progress: 50,
   },
   {
     id: "family",
     title: "Family & Relatives",
-    image: IMAGE_URL,
+    image: "https://img.freepik.com/free-vector/open-hand-vector-illustration_1308-169733.jpg?semt=ais_hybrid&w=740&q=80",
     lessons: 12,
     hours: 3,
+    progress: 0,
   },
   {
     id: "daily-activities",
@@ -28,13 +31,15 @@ export const topics: Topic[] = [
     image: IMAGE_URL,
     lessons: 15,
     hours: 4,
+    progress: 100,
   },
   {
     id: "emotions",
     title: "Emotions & Feelings",
-    image: IMAGE_URL,
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT2Z_8VmxfR4Otm9K-0b6NKmPDlxWzIykQ_tg&s",
     lessons: 8,
     hours: 2,
+    progress: 90,
   },
   {
     id: "school",
@@ -42,6 +47,7 @@ export const topics: Topic[] = [
     image: IMAGE_URL,
     lessons: 14,
     hours: 3.5,
+    progress: 80,
   },
   {
     id: "food",

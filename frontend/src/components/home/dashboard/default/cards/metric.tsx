@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
 import {
   LineChart,
   Line,
   ResponsiveContainer,
   Tooltip,
   XAxis,
+  YAxis,
+  LabelList,
 } from "recharts";
 
 import {
@@ -25,82 +26,128 @@ const data = [
   { day: "Sun", minutes: 50 },
 ];
 
+const lastWeekTotal = 280;
+
 export default function WeeklyStudyTimeCard({
   className,
 }: {
   className?: string;
 }) {
-  const [isDark, setIsDark] = useState(false);
+  const totalMinutes = data.reduce((sum, d) => sum + d.minutes, 0);
+  const diff = totalMinutes - lastWeekTotal;
+  const diffPercent = Math.round((diff / lastWeekTotal) * 100);
+  const isIncrease = diff >= 0;
 
-  useEffect(() => {
-    const checkDarkMode = () => {
-      setIsDark(document.documentElement.classList.contains("dark"));
-    };
-    checkDarkMode();
-    const observer = new MutationObserver(checkDarkMode);
-    observer.observe(document.documentElement, { attributes: true });
-    return () => observer.disconnect();
-  }, []);
-
-  const lineColor = isDark ? "#fff" : "#000";
   return (
     <Card className={className}>
       <CardHeader>
-        <CardTitle className="text-base">
-          Weekly Study Time
-        </CardTitle>
-        <CardDescription>
-          Time spent learning Signlish this week ({130} minutes).
-        </CardDescription>
+      <CardTitle className="text-base">
+        Weekly Study Time
+      </CardTitle>
+      <CardDescription>
+        Time spent learning Signlish this week!
+      </CardDescription>
       </CardHeader>
 
       <CardContent className="pb-4">
-        <div className="h-[250px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={data}
-              margin={{ top: 10, right: 16, left: 0, bottom: 0 }}
-            >
-              {/* X AXIS: MON → SUN */}
-              <XAxis
-                dataKey="day"
-                tickLine={false}
-                padding={{ left: 16, right: 16 }}
-                axisLine={false}
-                className="text-xs text-muted-foreground"
-              />
+      <div className="h-[250px] text-muted-foreground">
+        <ResponsiveContainer width="100%" height="100%">
+        <LineChart
+          data={data}
+          margin={{ top: 24, right: 16, left: 0, bottom: 24 }}
+        >
+          <XAxis
+          dataKey="day"
+          axisLine={false}
+          tickLine={false}
+          padding={{ left: 16, right: 16 }}
+          tick={{ fontSize: 12 }}
+          />
 
-              {/* TOOLTIP */}
-              <Tooltip
-                content={({ active, payload }) => {
-                  if (active && payload && payload.length) {
-                    return (
-                      <div style={{ borderRadius: "8px", padding: "8px 12px" }}>
-                        <div style={{ fontSize: "14px", fontWeight: "500", color: isDark ? "#fff" : "#000" }}>
-                          {payload[0].payload.day}
-                        </div>
-                        <div style={{ fontSize: "14px", color: isDark ? "#ccc" : "#666" }}>
-                          {payload[0].value} minutes
-                        </div>
-                      </div>
-                    );
-                  }
-                  return null;
-                }}
-              />
+          <YAxis
+          axisLine={false}
+          tickLine={false}
+          width={32}
+          tick={{ fontSize: 12 }}
+          />
 
-              {/* SINGLE LINE */}
-              <Line
-                type="monotone"
-                dataKey="minutes"
-                stroke={lineColor}
-                strokeWidth={2}
-                dot={{ fill: lineColor, r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <Tooltip
+          cursor={{ stroke: "hsl(var(--border))" }}
+          content={({ active, payload }) => {
+            if (active && payload && payload.length) {
+            return (
+              <div className="rounded-md bg-background px-3 py-2 shadow-md border border-border">
+              <div className="text-sm font-medium text-foreground">
+                {payload[0].payload.day}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {payload[0].value} minutes
+              </div>
+              </div>
+            );
+            }
+            return null;
+          }}
+          />
+
+          <Line
+          type="monotone"
+          dataKey="minutes"
+          stroke="currentColor"
+          strokeWidth={2}
+          dot={{ r: 4, fill: "currentColor" }}
+          activeDot={{ r: 6, fill: "currentColor" }}
+          >
+          <LabelList
+            dataKey="minutes"
+            position="top"
+            fill="currentColor"
+            fontSize={12}
+            offset={8}
+          />
+          </Line>
+        </LineChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="mt-6 space-y-3 pt-4 border-t border-border">
+        <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span
+          className={`text-sm font-medium ${
+        isIncrease ? "text-success" : "text-destructive"
+          }`}
+          >
+          {isIncrease ? "▲" : "▼"} {Math.abs(diff)} minutes
+          </span>
+          <span className="text-sm text-muted-foreground">
+          ({diffPercent > 0 ? "+" : ""}{diffPercent}%)
+          </span>
         </div>
+        </div>
+
+        <p className="text-sm text-muted-foreground">
+        Compared to last week
+        </p>
+
+        <div className="flex items-center gap-4 pt-2">
+        <div className="text-sm">
+          <span className="text-muted-foreground">This week: </span>
+          <span className="font-semibold text-foreground">
+          {totalMinutes} min
+          </span>
+        </div>
+
+        <div className="h-4 w-px bg-border" />
+
+        <div className="text-sm">
+          <span className="text-muted-foreground">Last week: </span>
+          <span className="font-semibold text-foreground">
+          {lastWeekTotal} min
+          </span>
+        </div>
+        </div>
+      </div>
       </CardContent>
     </Card>
   );

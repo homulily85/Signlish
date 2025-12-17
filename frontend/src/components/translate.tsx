@@ -1,13 +1,11 @@
 "use client"
 
-import React, {useCallback, useRef, useState} from "react"
+import React, {useCallback, useEffect, useRef, useState} from "react"
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs"
 import {Card, CardContent} from "@/components/ui/card"
 import {Button} from "@/components/ui/button"
 import {Textarea} from "@/components/ui/textarea"
-import {Camera, Loader2, Mic, Pause, Play, RefreshCcw, Upload, Video} from "lucide-react"
-import {cn} from "@/lib/utils"
-import type {PoseViewerElement} from "@/types/type.ts";
+import {Camera, Loader2, Mic, RefreshCcw, Upload, Video} from "lucide-react"
 
 type InputMode = "upload" | "webcam"
 
@@ -27,27 +25,14 @@ export default function TranslatePage() {
   const [isListening, setIsListening] = useState(false)
   const [isTranslatingText, setIsTranslatingText] = useState(false)
   const [signVideoUrl, setSignVideoUrl] = useState("")
-  const poseRef = useRef<PoseViewerElement | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [showControls, setShowControls] = useState(true);
 
   const lastTranslatedRef = useRef("");
+  const mediaRef = useRef<MediaStream | null>(null);
+  const socketRef = useRef<WebSocket | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
-
-  const togglePlay = () => {
-    if (!poseRef.current) return;
-
-    if (isPlaying) {
-      poseRef.current.pause?.();
-      setIsPlaying(false);
-      setShowControls(true);   // show overlay when paused
-    } else {
-      poseRef.current.play?.();
-      setIsPlaying(true);
-      setShowControls(false);  // hide overlay when playing
-    }
-  };
-
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Handle video file upload
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,46 +45,146 @@ export default function TranslatePage() {
     }
   }
 
-  // Simulate video translation
-  const handleTranslateVideo = useCallback(() => {
-    if (!videoFile) return
+  const handleUpload = useCallback(async () => {
+    if (!videoFile) return;
 
-    setIsTranslatingVideo(true)
-    setTranslatedText("")
+    setIsTranslatingVideo(true);
 
-    // Simulate translation process
-    setTimeout(() => {
-      setTranslatedText("Hello, my name is Sarah. I am learning sign language. Thank you for watching.")
-      setIsTranslatingVideo(false)
-    }, 2000)
-  }, [videoFile])
+    try {
+      const formData = new FormData();
+      formData.append("file", videoFile);
 
-  // Simulate webcam activation
-  const handleWebcamToggle = useCallback(() => {
-    if (!isWebcamActive) {
-      setIsWebcamActive(true)
-      setRealtimeText("")
+      const response = await fetch(
+          "http://localhost:8000/sign-to-text/video",
+          {
+            method: "POST",
+            body: formData,
+          }
+      );
 
-      // Simulate real-time translation
-      const words = ["Hello", "I", "am", "happy", "to", "meet", "you"]
-      let index = 0
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.statusText}`);
+      }
 
-      const interval = setInterval(() => {
-        if (index < words.length) {
-          setRealtimeText((prev) => (prev ? `${prev} ${words[index]}` : words[index]))
-          index++
-        } else {
-          clearInterval(interval)
-        }
-      }, 1500)
+      const data = await response.json();
 
-      return () => clearInterval(interval)
-    } else {
-      setIsWebcamActive(false)
-      setRealtimeText("")
+      if (Array.isArray(data.prediction)) {
+        const cleaned = data.prediction.map((s: string) =>
+            s.toLowerCase().replace(/\d$/, "")
+        );
+
+        setTranslatedText(cleaned.join(" "));
+      }
+    } catch (error) {
+      console.error("Error uploading video:", error);
+    } finally {
+      setIsTranslatingVideo(false);
     }
-  }, [isWebcamActive])
+  }, [videoFile]);
 
+
+  const handleTranslateVideo = useCallback(async () => {
+    if (!videoFile) return;
+    await handleUpload();
+  }, [videoFile, handleUpload]);
+
+  const startWebcam = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {width: 640, height: 480, frameRate: {ideal: 30}}
+      });
+
+      mediaRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+
+      const socket = new WebSocket("ws://localhost:8000/sign-to-text/stream");
+      socketRef.current = socket;
+
+      socket.onopen = () => {
+        setIsWebcamActive(true);
+
+        const hiddenCanvas = document.createElement('canvas');
+        const ctx = hiddenCanvas.getContext('2d');
+
+        intervalRef.current = setInterval(() => {
+          if (videoRef.current && socket.readyState === WebSocket.OPEN && ctx) {
+            hiddenCanvas.width = videoRef.current.videoWidth;
+            hiddenCanvas.height = videoRef.current.videoHeight;
+
+            ctx.drawImage(videoRef.current, 0, 0);
+
+            hiddenCanvas.toBlob((blob) => {
+              if (blob) socket.send(blob);
+            }, 'image/jpeg', 0.7);
+          }
+        }, 100);
+      };
+
+      socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+
+        if (data.new_prediction) {
+          setRealtimeText(prevState => {
+            const lastChar = data.new_prediction.charAt(data.new_prediction.length - 1);
+            let rawText = data.new_prediction.toLowerCase()
+            if (lastChar >= '0' && lastChar <= '9') {
+              rawText = rawText.slice(0, -1);
+            }
+            return prevState + ' ' + rawText;
+          });
+        }
+      };
+
+      socket.onclose = () => {
+        stopWebcam();
+      };
+
+    } catch (err) {
+      console.error("Error accessing webcam:", err);
+      stopWebcam();
+    }
+  }
+
+  const stopWebcam = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
+    if (socketRef.current) {
+      socketRef.current.close();
+      socketRef.current = null;
+    }
+
+    if (mediaRef.current) {
+      mediaRef.current.getTracks().forEach(track => track.stop());
+      mediaRef.current = null;
+    }
+
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+
+    setIsWebcamActive(false);
+  }
+
+  const handleWebcamToggle = () => {
+    if (isWebcamActive) {
+      stopWebcam();
+    } else {
+      startWebcam();
+    }
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopWebcam();
+    };
+  }, []);
   // Handle uploading different video
   const handleUploadDifferent = () => {
     setVideoFile(null)
@@ -110,17 +195,100 @@ export default function TranslatePage() {
     }
   }
 
-  // Simulate speech-to-text
-  const handleVoiceInput = useCallback(() => {
-    setIsListening(true)
+  const handleVoiceInput = () => {
+    if (isListening) {
+      stopMicrophone();
+    } else {
+      startMicrophone();
+    }
+  };
 
-    setTimeout(() => {
-      setInputText("I want to learn how to say thank you in sign language")
-      setIsListening(false)
-    }, 2000)
-  }, [])
+  const floatTo16BitPCM = (input: Float32Array) => {
+    const output = new Int16Array(input.length);
+    for (let i = 0; i < input.length; i++) {
+      const s = Math.max(-1, Math.min(1, input[i]));
+      output[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+    }
+    return output;
+  }
 
-  // Simulate text to sign language translation
+  const startMicrophone = async () => {
+    try {
+      mediaRef.current = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: false,
+      });
+      const socket = new WebSocket("ws://localhost:8000/speech-to-text");
+      if (!socket) {
+        console.error("WebSocket not initialized");
+        return;
+      }
+      socketRef.current = socket;
+      socket.onopen = async () => {
+        setIsListening(true);
+        console.log("WebSocket connected");
+        const audioContext = new AudioContext({sampleRate: 16000});
+        audioContextRef.current = audioContext;
+        const input = audioContext.createMediaStreamSource(mediaRef.current as MediaStream);
+
+        // 4. Create a processor to intercept audio chunks
+        // bufferSize 4096 means we process ~0.25s of audio at a time
+        const processor = audioContext.createScriptProcessor(4096, 1, 1);
+
+        input.connect(processor);
+        processor.connect(audioContext.destination);
+
+        processor.onaudioprocess = (e) => {
+          const inputData = e.inputBuffer.getChannelData(0);
+          // Convert Float32 (browser) to Int16 (AWS)
+          const pcmData = floatTo16BitPCM(inputData);
+
+          if (socket.readyState === WebSocket.OPEN) {
+            socket.send(pcmData);
+          }
+        };
+      };
+
+      socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        // setInputText(inputText.concat(data.transcript))
+        setInputText(prev => prev + " " + data.transcript);
+      };
+    } catch (err) {
+      console.error("Error accessing microphone:", err);
+    }
+  };
+
+  const stopMicrophone = () => {
+    const stream = mediaRef.current;
+    const socket = socketRef.current;
+    const audioContext = audioContextRef.current;
+
+    if (socket) {
+      socket.close()
+    }
+    if (audioContext) {
+      audioContext.close()
+    }
+
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+
+    mediaRef.current = null;
+    socketRef.current = null;
+    audioContextRef.current = null;
+    setIsListening(false);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (mediaRef.current) {
+        mediaRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
   const handleTranslateText = useCallback(async () => {
     if (!inputText.trim()) return
 
@@ -163,7 +331,17 @@ export default function TranslatePage() {
             <p className="text-muted-foreground">Learn and translate sign language with ease</p>
           </header>
 
-          <Tabs defaultValue="sign-to-text" className="w-full">
+          <Tabs defaultValue="sign-to-text" className="w-full"
+                onValueChange={(value) => {
+                  setTranslatedText("")
+                  setRealtimeText("")
+                  if (value !== "text-to-sign" && isListening) {
+                    stopMicrophone()
+                  }
+                  if (value !== "sign-to-text" && isWebcamActive) {
+                    stopWebcam()
+                  }
+                }}>
             <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
               <TabsTrigger value="sign-to-text">Sign to Text</TabsTrigger>
               <TabsTrigger value="text-to-sign">Text to Sign</TabsTrigger>
@@ -182,6 +360,11 @@ export default function TranslatePage() {
                             variant={inputMode === "upload" ? "default" : "outline"}
                             size="sm"
                             onClick={() => {
+                              if (isWebcamActive) {
+                                stopWebcam()
+                                setTranslatedText("")
+                                setRealtimeText("")
+                              }
                               setInputMode("upload")
                               setIsWebcamActive(false)
                               setRealtimeText("")
@@ -266,15 +449,22 @@ export default function TranslatePage() {
                     {inputMode === "webcam" && (
                         <div className="space-y-4">
                           <div
-                              className="relative rounded-lg overflow-hidden bg-muted min-h-[300px] flex items-center justify-center">
-                            {isWebcamActive ? (
-                                <div
-                                    className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-900/20 to-purple-900/20">
-                                  <Camera className="h-16 w-16 text-muted-foreground animate-pulse"/>
+                              className="relative rounded-lg overflow-hidden bg-muted min-h-[300px] flex items-center justify-center bg-black">
+                            {/* VIDEO ELEMENT FOR WEBCAM */}
+                            <video
+                                ref={videoRef}
+                                autoPlay
+                                playsInline
+                                muted
+                                className={`w-full h-full object-cover transform scale-x-[-1] ${!isWebcamActive && 'hidden'}`}
+                            />
+
+                            {!isWebcamActive && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <Camera className="h-16 w-16 text-muted-foreground"/>
                                 </div>
-                            ) : (
-                                <Camera className="h-16 w-16 text-muted-foreground"/>
                             )}
+
                             {isWebcamActive && (
                                 <div
                                     className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
@@ -283,6 +473,7 @@ export default function TranslatePage() {
                                 </div>
                             )}
                           </div>
+
                           <Button
                               onClick={handleWebcamToggle}
                               className="w-full"
@@ -290,11 +481,6 @@ export default function TranslatePage() {
                           >
                             {isWebcamActive ? "Stop Webcam" : "Start Webcam"}
                           </Button>
-                          {isWebcamActive && (
-                              <p className="text-sm text-muted-foreground text-center">
-                                Performing signs... Translation appears automatically
-                              </p>
-                          )}
                         </div>
                     )}
                   </CardContent>
@@ -334,10 +520,10 @@ export default function TranslatePage() {
                             size="icon"
                             variant="ghost"
                             onClick={handleVoiceInput}
-                            disabled={isListening}
-                            className={cn("absolute bottom-3 right-3", isListening && "text-red-500")}
+                            className={"absolute bottom-3 right-3"}
                         >
-                          {isListening ? <Mic className="h-5 w-5 animate-pulse"/> : <Mic className="h-5 w-5"/>}
+                          {isListening ? <Mic className="h-5 w-5 animate-pulse text-red-500 "/> :
+                              <Mic className="h-5 w-5"/>}
                         </Button>
                       </div>
                       <Button
@@ -372,32 +558,12 @@ export default function TranslatePage() {
                             </p>
                           </div>
                       ) : (
-                          <div
-                              className="relative w-full group"
-                              onMouseMove={() => setShowControls(true)}
-                              onMouseLeave={() => isPlaying && setShowControls(false)}
-                          >
+                          <div className="relative w-full group">
                             <pose-viewer
-                                ref={poseRef}
                                 src={signVideoUrl}
-                                className="w-full h-auto rounded"
-                                autoplay={false}
+                                autoplay
+                                loop
                             />
-
-                            <div
-                                className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200
-      ${showControls ? "opacity-100 bg-black/30" : "opacity-0 pointer-events-none"}
-    `}
-                            >
-                              <Button
-                                  size="lg"
-                                  variant="secondary"
-                                  className="rounded-full h-16 w-16"
-                                  onClick={togglePlay}
-                              >
-                                {isPlaying ? <Pause/> : <Play/>}
-                              </Button>
-                            </div>
                           </div>
                       )}
                     </div>

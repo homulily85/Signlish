@@ -3,7 +3,7 @@ import TopicGrid from "./topic-gird";
 
 export default function MyCoursesPage() {
   return (
-    <div className="space-y-6">
+    <div className="px-4 sm:px-6 lg:px-8">
       <TopicGrid topics={topics} />
     </div>
   );
