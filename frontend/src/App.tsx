@@ -17,6 +17,7 @@ import Dictionary from "./pages/Dictionary"
 import TranslatePage from "./pages/Translate"
 import Home from "./pages/Home"
 import ExploreCourses from "./pages/ExploreCourses"
+import PracticePage from "./pages/Practice"
 import { AuthProvider } from "./context/AuthContext"
 
 import { useNavigate } from "react-router-dom"
@@ -53,6 +54,7 @@ function AppContent() {
           <Route path="/" element={<Landing />} />
           <Route path="/dictionary" element={<Dictionary />} />
           <Route path="/translate" element={<TranslatePage />} />
+          <Route path="/practice" element={<PracticePage />} />
         </Route>
 
         {/* Nhóm các trang CÓ Navbar KHÔNG CÓ Footer */}
@@ -67,6 +69,7 @@ function AppContent() {
           }
         >
           <Route path="/learn" element={<ExploreCourses />} />
+          <Route path="/practice" element={<PracticePage />} />
           {/* <Route path="/home" element={<Home />} /> */}
           <Route path="/home" element={<PrivateRoute element={<Home />} />} />
           <Route path="500" element={<Error500 />} />
