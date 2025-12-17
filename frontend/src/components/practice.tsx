@@ -305,13 +305,12 @@ export default function Practice() {
                         size="lg"
                         onClick={() => !selectedAnswer && handleAnswerSelect(option)}
                         disabled={!!selectedAnswer}
-                        className={`h-20 text-lg ${
-                          showAsCorrect
-                            ? "bg-green-500 text-white hover:bg-green-500"
-                            : showAsWrong
-                              ? "bg-red-500 text-white hover:bg-red-500"
-                              : ""
-                        }`}
+                        className={`h-20 text-lg ${showAsCorrect
+                          ? "bg-green-500 text-white hover:bg-green-500"
+                          : showAsWrong
+                            ? "bg-red-500 text-white hover:bg-red-500"
+                            : ""
+                          }`}
                       >
                         {option}
                       </Button>
@@ -343,13 +342,12 @@ export default function Practice() {
                 <div className="text-center">
                   <p className="text-sm text-muted-foreground mb-2">Detected:</p>
                   <p
-                    className={`text-3xl font-bold transition-colors ${
-                      isCorrect === true
-                        ? "text-green-600"
-                        : isCorrect === false
-                          ? "text-red-600"
-                          : "text-muted-foreground"
-                    }`}
+                    className={`text-3xl font-bold transition-colors ${isCorrect === true
+                      ? "text-green-600"
+                      : isCorrect === false
+                        ? "text-red-600"
+                        : "text-muted-foreground"
+                      }`}
                   >
                     {detectedWord || "Waiting..."}
                   </p>
