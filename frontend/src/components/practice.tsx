@@ -7,10 +7,12 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ChevronLeft, BookOpen, Grid3x3, Camera, Lightbulb, Trophy } from "lucide-react"
 import Webcam from "react-webcam"
+import type { VocabularyWord } from "@/types/lesson"
 
-// Mock practice data
-const practiceData = [
+// Mock practice data (fallback)
+const defaultPracticeData: VocabularyWord[] = [
   {
+    id: "hello",
     word: "Hello",
     definition: "A greeting used when meeting someone",
     videoUrl: "/placeholder.svg?height=300&width=400",
@@ -18,6 +20,7 @@ const practiceData = [
     wrongOptions: ["Goodbye", "Thank You", "Please"],
   },
   {
+    id: "thank-you",
     word: "Thank You",
     definition: "An expression of gratitude",
     videoUrl: "/placeholder.svg?height=300&width=400",
@@ -25,6 +28,7 @@ const practiceData = [
     wrongOptions: ["Hello", "Sorry", "Welcome"],
   },
   {
+    id: "sorry",
     word: "Sorry",
     definition: "An expression of apology or regret",
     videoUrl: "/placeholder.svg?height=300&width=400",
@@ -32,6 +36,7 @@ const practiceData = [
     wrongOptions: ["Excuse Me", "Hello", "Help"],
   },
   {
+    id: "please",
     word: "Please",
     definition: "A polite word used when asking for something",
     videoUrl: "/placeholder.svg?height=300&width=400",
@@ -42,8 +47,21 @@ const practiceData = [
 
 type PracticeMode = "selection" | "flashcard" | "multiple-choice" | "vision" | "completion"
 
-export default function Practice() {
-  const [mode, setMode] = useState<PracticeMode>("selection")
+type PracticeProps = {
+  mode?: PracticeMode;
+  vocabularyWords?: VocabularyWord[];
+  onComplete?: () => void;
+  onBack?: () => void;
+};
+
+export default function Practice({ 
+  mode: initialMode = "selection", 
+  vocabularyWords, 
+  onComplete,
+  onBack 
+}: PracticeProps) {
+  const practiceData = vocabularyWords || defaultPracticeData;
+  const [mode, setMode] = useState<PracticeMode>(initialMode)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
@@ -91,7 +109,11 @@ export default function Practice() {
 
   const handleNext = () => {
     if (isLastWord) {
-      setMode("completion")
+      if (onComplete) {
+        onComplete();
+      } else {
+        setMode("completion");
+      }
     } else {
       setCurrentIndex(currentIndex + 1)
       resetState()
@@ -104,9 +126,13 @@ export default function Practice() {
   }
 
   const handleBackToPractice = () => {
-    setMode("selection")
-    setCurrentIndex(0)
-    resetState()
+    if (onBack) {
+      onBack();
+    } else {
+      setMode("selection");
+      setCurrentIndex(0);
+      resetState();
+    }
   }
 
   // Generate multiple choice options

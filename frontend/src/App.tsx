@@ -18,6 +18,7 @@ import TranslatePage from "./pages/Translate"
 import Home from "./pages/Home"
 import ExploreCourses from "./pages/ExploreCourses"
 import PracticePage from "./pages/Practice"
+import LearningPage from "./pages/Learning"
 import { AuthProvider } from "./context/AuthContext"
 
 import { useNavigate } from "react-router-dom"
@@ -69,6 +70,7 @@ function AppContent() {
           }
         >
           <Route path="/learn" element={<ExploreCourses />} />
+          <Route path="/learning/:topicSlug" element={<LearningPage />} />
           <Route path="/practice" element={<PracticePage />} />
           {/* <Route path="/home" element={<Home />} /> */}
           <Route path="/home" element={<PrivateRoute element={<Home />} />} />
