@@ -183,13 +183,17 @@ async def mark_lesson_complete(email: str, word_id: int, category: str):
 
 
 # Routes for handling questions
-@router.get("/categories/{category}/questions", response_model=Question)
-async def get_question_by_category(category: str):
-    """Get the most recent question for a specific category."""
+@router.get("/categories/{category}/questions", response_model=List[Question])
+async def get_questions_by_category(category: str):
+    """Get a shuffled list of questions for a specific category."""
     qs = [q for q in QUESTIONS if q["category"] == category]
+    
     if not qs:
-        raise HTTPException(404, "No question available for this category")
-    return Question(**qs[-1])
+        raise HTTPException(404, detail="No questions available for this category")
+    
+    random.shuffle(qs)
+    
+    return [Question(**q) for q in qs]
 
 @router.post("/users/{email}/questions/{category}/complete")
 async def mark_question_complete(email: str, category: str):
@@ -216,3 +220,4 @@ async def mark_question_complete(email: str, category: str):
     log_activity(email, minutes=3)
 
     return {"status": "completed"}
+

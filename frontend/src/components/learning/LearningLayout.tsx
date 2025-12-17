@@ -142,6 +142,7 @@ export default function LearningLayout() {
           <PracticeSection
             vocabularyWords={topic.lessons}
             topicTitle={topic.title}
+            category={topic.id}
             onBack={handleBackFromPractice}
           />
         ) : currentLesson ? (

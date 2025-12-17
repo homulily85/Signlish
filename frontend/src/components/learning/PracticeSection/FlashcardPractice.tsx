@@ -24,7 +24,8 @@ export default function FlashcardPractice({
     const [flipped, setFlipped] = useState(false);
     const [loading, setLoading] = useState(true);
 
-    const email = "test@example.com"; // TODO: lấy từ auth context
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const email = user?.email;
 
     // Lấy dữ liệu flashcards nếu chưa có từ props
     useEffect(() => {
@@ -33,7 +34,7 @@ export default function FlashcardPractice({
             return;
         }
 
-        fetch(`/api/lessons/categories/${category}/flashcards`)
+        fetch(`http://localhost:8000/lessons/categories/${category}/flashcards`)
             .then((res) => res.json())
             .then(setCards)
             .finally(() => setLoading(false));
