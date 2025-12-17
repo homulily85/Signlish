@@ -33,7 +33,7 @@ export default function TopicCard({
   };
 
   return (
-    <Card 
+    <Card
       className="overflow-hidden transition hover:shadow-md cursor-pointer"
       onClick={handleClick}
     >
