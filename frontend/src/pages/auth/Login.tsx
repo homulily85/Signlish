@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import illustration from "@/assets/login-illustration.png"
 import { LoginForm } from "@/components/login-form"
 import Logo from "@/assets/logo.svg?react"
+import { useAuth } from "@/context/AuthContext"
 
 type LoginPayload = {
   identifier: string
@@ -12,6 +13,7 @@ type LoginPayload = {
 export default function LoginPage() {
   const [error, setError] = useState<string>("")
   const navigate = useNavigate()
+  const {login} = useAuth();
 
   const handleLogin = async (payload: LoginPayload) => {
     try {
@@ -27,10 +29,9 @@ export default function LoginPage() {
       if (!res.ok) throw new Error(data.detail || "Login failed")
 
       // BE trả access_token + user
-      localStorage.setItem("access_token", data.access_token)
-      localStorage.setItem("user", JSON.stringify(data.user))
-      console.log("Logged in user:", data.user, data.access_token)
-      navigate("/")
+      login(data.user, data.access_token);
+      navigate("/home")
+
     } catch (e: any) {
       setError(e?.message || "Login failed")
     }
