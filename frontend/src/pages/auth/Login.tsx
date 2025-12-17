@@ -29,7 +29,7 @@ export default function LoginPage() {
       // BE trả access_token + user
       localStorage.setItem("access_token", data.access_token)
       localStorage.setItem("user", JSON.stringify(data.user))
-
+      console.log("Logged in user:", data.user, data.access_token)
       navigate("/")
     } catch (e: any) {
       setError(e?.message || "Login failed")

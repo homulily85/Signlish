@@ -8,6 +8,7 @@ from routes import lesson
 from routes import speech_to_text
 from routes import sign_language_processor
 from routes import user_routes
+from routes import dashboard
 
 origins = [
     "http://localhost:5173",
@@ -34,6 +35,8 @@ app.include_router(text_to_sign.router)
 app.include_router(speech_to_text.router)
 
 app.include_router(sign_language_processor.router)
+
+app.include_router(dashboard.router)
 
 
 @app.get("/")
