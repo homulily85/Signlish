@@ -3,16 +3,17 @@
 import { useNavigate } from "react-router-dom";
 // import useAuth from "@/hooks/useAuth";
 import { Navbar01 } from "@/components/common/Navbar";
+import { useAuth } from "@/context/AuthContext";
 
 export default function NavBar() {
   const navigate = useNavigate();
-  // const { user, logout } = useAuth();
+  const { user, logout } = useAuth();
   
   // eslint-disable-next-line no-console
-  // console.log('[NavBar] Rendering with user:', user ? (user.username || user.email) : 'null');
+  // console.log('[NavBar] Rendering with user:', user ? (user.name || user.email) : 'null');
 
   const handleLogout = () => {
-    // logout();
+    logout();
     navigate("/");
   };
 
@@ -24,7 +25,7 @@ export default function NavBar() {
   return (
     <div className="relative w-full h-16">
       <Navbar01
-        // user={user}s
+        user={user}
         onLogout={handleLogout}
         onNotificationClick={handleNotificationClick}
         hasNotifications={true}

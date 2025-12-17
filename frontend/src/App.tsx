@@ -1,5 +1,5 @@
 import "./App.css"
-import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom"
+import { BrowserRouter, Routes, Route, Outlet, Navigate } from "react-router-dom"
 import { ThemeProvider } from "@/components/theme-provider"
 import LoginPage from "@/pages/auth/Login"
 import SignupPage from "./pages/auth/Register"
@@ -18,6 +18,22 @@ import TranslatePage from "./pages/Translate"
 import Home from "./pages/Home"
 import ExploreCourses from "./pages/ExploreCourses"
 import PracticePage from "./pages/Practice"
+import { AuthProvider } from "./context/AuthContext"
+
+import { useNavigate } from "react-router-dom"
+import { useAuth } from "@/context/AuthContext"
+import React from "react"
+
+function PrivateRoute({ element }: { element: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  if (loading) return null
+  if (!user) {
+    return <Navigate to="/login" replace />
+  }
+
+  return element;
+}
 
 function AppContent() {
   return (
@@ -27,7 +43,7 @@ function AppContent() {
         <Route
           element={
             <>
-              <Navbar01 />
+              <NavBar />
               <main className="flex-1 pt-16">
                 <Outlet />
               </main>
@@ -45,7 +61,7 @@ function AppContent() {
         <Route
           element={
             <>
-              <Navbar01 />
+              <NavBar />
               <main className="flex-1 pt-16">
                 <Outlet />
               </main>
@@ -53,8 +69,9 @@ function AppContent() {
           }
         >
           <Route path="/learn" element={<ExploreCourses />} />
-          <Route path="/home" element={<Home />} />
           <Route path="/practice" element={<PracticePage />} />
+          {/* <Route path="/home" element={<Home />} /> */}
+          <Route path="/home" element={<PrivateRoute element={<Home />} />} />
           <Route path="500" element={<Error500 />} />
           <Route path="503" element={<Error503 />} />
           <Route path="403" element={<Error403 />} />
@@ -82,9 +99,11 @@ function AppContent() {
 function App() {
   return (
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </AuthProvider>
     </ThemeProvider>
   )
 }
