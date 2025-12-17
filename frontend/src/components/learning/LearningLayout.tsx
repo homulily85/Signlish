@@ -4,39 +4,50 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import LearningSidebar from "@/components/learning/LearningSidebar";
 import LessonContent from "@/components/learning/LessonContent";
 import PracticeSection from "@/components/learning/PracticeSection";
-import { getTopicBySlug, getAllVocabularyWords } from "@/types/lesson";
+import { useTopic } from "@/hooks/useTopic";
+
+const API_BASE = "http://localhost:8000";
 
 export default function LearningLayout() {
   const { topicSlug } = useParams<{ topicSlug: string }>();
   const navigate = useNavigate();
 
-  const topic = topicSlug ? getTopicBySlug(topicSlug) : null;
 
-  const [currentLessonId, setCurrentLessonId] = useState<string | null>(
-    topic?.lessons[0]?.id || null
-  );
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const email = user?.email;
+
+  const { topic, loading } = useTopic(topicSlug!, email);
+
+  const [currentLessonId, setCurrentLessonId] = useState<number | null>(null);
   const [isPracticeMode, setIsPracticeMode] = useState(false);
-  const [completedLessonIds, setCompletedLessonIds] = useState<Set<string>>(new Set());
+  const [completedLessonIds, setCompletedLessonIds] = useState<Set<number>>(new Set());
 
-  // Redirect if topic not found
+  // redirect nếu không có topic
   useEffect(() => {
-    if (!topic) {
+    if (!loading && !topic) {
       navigate("/learn");
     }
-  }, [topic, navigate]);
+  }, [loading, topic, navigate]);
 
-  if (!topic) {
-    return null;
-  }
+  // set lesson đầu tiên khi load xong
+  useEffect(() => {
+    if (topic && topic.lessons.length > 0) {
+      setCurrentLessonId(topic.lessons[0].id);
+    }
+  }, [topic]);
 
-  // Get current lesson
-  const currentLesson = topic.lessons.find((lesson) => lesson.id === currentLessonId);
-  const currentLessonIndex = topic?.lessons.findIndex((lesson) => lesson.id === currentLessonId) ?? -1;
+  if (loading || !topic) return null;
 
-  // Get all vocabulary words for practice
-  const allVocabularyWords = topicSlug ? getAllVocabularyWords(topicSlug) : [];
+  const currentLesson = topic.lessons.find(l => l.id === currentLessonId) || null;
+  const currentLessonIndex =
+    topic.lessons.findIndex(l => l.id === currentLessonId);
 
-  const handleLessonSelect = (lessonId: string) => {
+  const isFirstLesson = currentLessonIndex === 0;
+  const isLastLesson = currentLessonIndex === topic.lessons.length - 1;
+
+  /* ================= handlers ================= */
+
+  const handleLessonSelect = (lessonId: number) => {
     setCurrentLessonId(lessonId);
     setIsPracticeMode(false);
   };
@@ -47,49 +58,51 @@ export default function LearningLayout() {
   };
 
   const handlePrevious = () => {
-    if (!topic) return;
-    
-    const currentIndex = topic.lessons.findIndex((l) => l.id === currentLessonId);
-    if (currentIndex > 0) {
-      const previousLesson = topic.lessons[currentIndex - 1];
-      setCurrentLessonId(previousLesson.id);
+    if (currentLessonIndex > 0) {
+      setCurrentLessonId(topic.lessons[currentLessonIndex - 1].id);
     }
   };
 
-  const handleNext = () => {
-    if (!topic || !currentLessonId) return;
+  const completeLesson = async (lessonId: number) => {
+    try {
+      await fetch(`${API_BASE}/lessons/user/progress/complete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          category: topic.id,
+          word_id: lessonId,
+        }),
+      });
 
-    // Mark current lesson as completed
-    setCompletedLessonIds((prev) => new Set(prev).add(currentLessonId));
+      setCompletedLessonIds(prev => new Set(prev).add(lessonId));
+    } catch (err) {
+      console.error("Complete lesson failed", err);
+    }
+  };
 
-    const currentIndex = topic.lessons.findIndex((l) => l.id === currentLessonId);
-    const isLastLesson = currentIndex === topic.lessons.length - 1;
+  const handleNext = async () => {
+    if (!currentLesson) return;
+
+    await completeLesson(currentLesson.id);
 
     if (isLastLesson) {
-      // Go to practice mode
       handlePracticeSelect();
     } else {
-      // Go to next lesson
-      const nextLesson = topic.lessons[currentIndex + 1];
-      setCurrentLessonId(nextLesson.id);
+      setCurrentLessonId(topic.lessons[currentLessonIndex + 1].id);
     }
   };
 
   const handleBackFromPractice = () => {
-    if (!topic) return;
-    
     setIsPracticeMode(false);
-    // Go back to last lesson
-    const lastLesson = topic.lessons[topic.lessons.length - 1];
-    setCurrentLessonId(lastLesson.id);
+    setCurrentLessonId(topic.lessons[topic.lessons.length - 1].id);
   };
 
-  const isFirstLesson = currentLessonIndex === 0;
-  const isLastLesson = topic ? currentLessonIndex === topic.lessons.length - 1 : false;
+  /* ================= render ================= */
 
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* Fixed Sidebar */}
+      {/* Sidebar */}
       <div className="w-80 flex-shrink-0">
         <LearningSidebar
           topicTitle={topic.title}
@@ -102,11 +115,11 @@ export default function LearningLayout() {
         />
       </div>
 
-      {/* Main Content Area */}
+      {/* Content */}
       <ScrollArea className="flex-1">
         {isPracticeMode ? (
           <PracticeSection
-            vocabularyWords={allVocabularyWords}
+            vocabularyWords={topic.lessons}
             topicTitle={topic.title}
             onBack={handleBackFromPractice}
           />
@@ -122,7 +135,9 @@ export default function LearningLayout() {
           />
         ) : (
           <div className="flex items-center justify-center h-full">
-            <p className="text-muted-foreground">Select a lesson to start learning</p>
+            <p className="text-muted-foreground">
+              Select a lesson to start learning
+            </p>
           </div>
         )}
       </ScrollArea>
