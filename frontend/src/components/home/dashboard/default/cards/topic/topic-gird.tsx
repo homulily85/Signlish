@@ -27,6 +27,7 @@ export default function TopicGrid({ topics }: TopicGridProps) {
       {topics.map((topic) => (
         <TopicCard
           key={topic.id}
+          id={topic.id}
           title={topic.title}
           image={topic.image}
           lessons={topic.lessons}

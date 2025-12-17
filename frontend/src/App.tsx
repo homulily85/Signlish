@@ -18,11 +18,13 @@ import TranslatePage from "./pages/Translate"
 import Home from "./pages/Home"
 import ExploreCourses from "./pages/ExploreCourses"
 import PracticePage from "./pages/Practice"
+import LearningPage from "./pages/Learning"
 import { AuthProvider } from "./context/AuthContext"
 
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/context/AuthContext"
 import React from "react"
+import ProfilePage from "./pages/Setting"
 
 function PrivateRoute({ element }: { element: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -68,7 +70,9 @@ function AppContent() {
             </>
           }
         >
+          <Route path="/settings" element={<ProfilePage />} />
           <Route path="/learn" element={<ExploreCourses />} />
+          <Route path="/learning/:topicSlug" element={<LearningPage />} />
           <Route path="/practice" element={<PracticePage />} />
           {/* <Route path="/home" element={<Home />} /> */}
           <Route path="/home" element={<PrivateRoute element={<Home />} />} />
