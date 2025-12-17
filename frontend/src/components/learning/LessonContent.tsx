@@ -2,7 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, Play } from "lucide-react";
-import type { Lesson } from "@/types/lesson";
+import type { Lesson } from "@/types/type";
+import { useRef, useState, useEffect } from "react";
 
 type LessonContentProps = {
   lesson: Lesson;
@@ -23,6 +24,18 @@ export default function LessonContent({
   onPrevious,
   onNext,
 }: LessonContentProps) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  // Reset state when lesson changes
+  useEffect(() => {
+    setIsPlaying(false); // Reset video play state when switching lessons
+    if (videoRef.current) {
+      videoRef.current.pause(); // Pause the video if switching to another lesson
+      videoRef.current.currentTime = 0; // Reset the video to the start
+    }
+  }, [lesson]);
+
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       {/* Progress Badge */}
@@ -40,16 +53,28 @@ export default function LessonContent({
         <CardContent className="space-y-6">
           {/* Video Section */}
           <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
-            <img
-              src={lesson.videoUrl || "/placeholder.svg"}
-              alt={`Sign for ${lesson.word}`}
+            <video
+              ref={videoRef}
+              src={lesson.source || "/placeholder.mp4"}
               className="w-full h-full object-cover"
+              playsInline
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              onEnded={() => setIsPlaying(false)}
             />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Button size="lg" className="rounded-full w-16 h-16" variant="secondary">
-                <Play className="w-8 h-8" />
-              </Button>
-            </div>
+
+            {!isPlaying && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                <Button
+                  size="lg"
+                  className="rounded-full w-16 h-16"
+                  variant="secondary"
+                  onClick={() => videoRef.current?.play()}
+                >
+                  <Play className="w-8 h-8" />
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Definition */}

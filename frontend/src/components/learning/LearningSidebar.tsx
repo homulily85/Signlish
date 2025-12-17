@@ -47,20 +47,22 @@ export default function LearningSidebar({
               <Button
                 key={lesson.id}
                 variant={isActive ? "secondary" : "ghost"}
-                className={`w-full justify-start h-auto py-3 px-4 ${
-                  isActive ? "bg-primary/10 hover:bg-primary/20" : ""
-                }`}
+                className={`w-full justify-start h-auto py-3 px-4 ${isActive
+                  ? "bg-primary/10 hover:bg-primary/20"
+                  : isCompleted
+                    ? "bg-green-100 text-green-800"
+                    : "text-muted-foreground"
+                  }`}
                 onClick={() => onLessonSelect(lesson.id)}
               >
                 <div className="flex items-center gap-3 w-full">
                   <div
-                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 ${
-                      isCompleted
-                        ? "border-green-500 bg-green-500 text-white"
-                        : isActive
-                          ? "border-primary"
-                          : "border-muted-foreground/30"
-                    }`}
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 ${isCompleted
+                      ? "border-green-500 bg-green-500 text-white"
+                      : isActive
+                        ? "border-primary"
+                        : "border-muted-foreground/30"
+                      }`}
                   >
                     {isCompleted ? (
                       <Check className="h-4 w-4" />
@@ -83,9 +85,10 @@ export default function LearningSidebar({
         <div className="p-4 pb-6">
           <Button
             variant={isPracticeMode ? "secondary" : "ghost"}
-            className={`w-full justify-start h-auto py-4 px-4 ${
-              isPracticeMode ? "bg-purple-100 dark:bg-purple-950 hover:bg-purple-200 dark:hover:bg-purple-900" : ""
-            }`}
+            className={`w-full justify-start h-auto py-4 px-4 ${isPracticeMode
+              ? "bg-purple-100 dark:bg-purple-950 hover:bg-purple-200 dark:hover:bg-purple-900"
+              : ""
+              }`}
             onClick={onPracticeSelect}
           >
             <div className="flex items-center gap-3 w-full">
