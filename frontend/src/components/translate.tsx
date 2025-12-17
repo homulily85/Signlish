@@ -183,6 +183,7 @@ export default function TranslatePage() {
   useEffect(() => {
     return () => {
       stopWebcam();
+      stopMicrophone()
     };
   }, []);
   // Handle uploading different video
