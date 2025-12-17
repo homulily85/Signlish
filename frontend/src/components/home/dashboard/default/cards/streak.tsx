@@ -143,9 +143,9 @@ export default function StreakCalendar() {
             let style = "bg-muted text-muted-foreground";
 
             if (isToday || checked) {
-              style = "bg-[var(--chart-1)] text-white";
+              style = "bg-[var(--chart-1)] text-primary-foreground";
             } else if (!isFuture) {
-              style = "bg-[var(--chart-2)] text-white";
+              style = "bg-[var(--chart-4)] text-primary-foreground";
             }
 
             return (

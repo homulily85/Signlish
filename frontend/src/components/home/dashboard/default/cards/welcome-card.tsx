@@ -34,7 +34,7 @@ export default function WelcomeCard({
 
           <Button
             className="mt-2"
-            onClick={() => navigate("/explore")}
+            onClick={() => navigate("/learn")}
           >
             Explore Course
           </Button>
