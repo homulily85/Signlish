@@ -1,6 +1,13 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import { ChevronLeft } from "lucide-react";
 
 type Question = {
@@ -21,56 +28,85 @@ export default function MultipleChoicePractice({
     onBack,
     onComplete,
 }: Props) {
-    const [questions, setQuestions] = useState<Question[]>([]); // Lưu tất cả câu hỏi
-    const [selected, setSelected] = useState<string | null>(null); // Câu trả lời được chọn
-    const [index, setIndex] = useState<number>(0); // Chỉ số câu hỏi hiện tại
-    const [checking, setChecking] = useState(false); // Cờ kiểm tra câu trả lời
+    const [questions, setQuestions] = useState<Question[]>([]);
+    const [index, setIndex] = useState(0);
+    const [selected, setSelected] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
 
-    // Fetch câu hỏi từ API
+    const q = questions[index];
+
+    /* ================= FETCH QUESTIONS ================= */
     useEffect(() => {
-        fetch(`http://localhost:8000/lessons/categories/${category}/questions`)
+        setLoading(true);
+        fetch(
+            `http://localhost:8000/lessons/categories/${category}/questions`
+        )
             .then((res) => res.json())
-            .then(setQuestions);
+            .then((data) => {
+                setQuestions(data);
+                setIndex(0);
+            })
+            .finally(() => setLoading(false));
     }, [category]);
 
-    // Reset khi chuyển sang câu hỏi tiếp theo
+    /* ================= RESET WHEN QUESTION CHANGES ================= */
     useEffect(() => {
         setSelected(null);
     }, [index]);
 
-    const q = questions[index]; // Câu hỏi hiện tại
+    /* ================= NEXT / FINISH ================= */
+    const next = async () => {
+        if (!q) return;
 
-    // Hàm để kiểm tra câu trả lời
-    const submit = async () => {
-        if (!q || !selected) return;
-
-        setChecking(true);
-
-        // Kiểm tra câu trả lời
-        if (selected === q.answer) {
-            // Gửi thông tin hoàn thành bài kiểm tra
-            await fetch(`http://localhost:8000/lessons/categories/${category}/questions/complete`, {
-                method: "POST",
-                body: JSON.stringify({ email: "test@example.com" }), // Cần gửi email của người dùng
-            });
-            onComplete(); // Kết thúc bài tập
+        // Không kiểm tra đúng/sai ở đây nữa
+        if (index + 1 >= questions.length) {
+            await fetch(
+                `http://localhost:8000/lessons/categories/${category}/questions/complete`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: "test@example.com" }),
+                }
+            );
+            onComplete();
         } else {
-            alert("Wrong answer, try again!"); // Nếu trả lời sai
+            setIndex((i) => i + 1);
         }
-
-        setChecking(false);
     };
 
-    // Nếu chưa có câu hỏi, hiển thị loading
-    if (questions.length === 0) {
-        return <div className="p-6 text-center">Loading questions...</div>;
+    /* ================= LOADING ================= */
+    if (loading || !q) {
+        return (
+            <div className="p-6 text-center text-muted-foreground">
+                Loading questions...
+            </div>
+        );
     }
 
+    /* ================= UI ================= */
     return (
-        <div className="space-y-6">
-            {/* Hiển thị video câu hỏi */}
+        <div className="max-w-xl mx-auto p-6 space-y-6">
+            {/* ===== Back button ===== */}
+            <Button variant="ghost" onClick={onBack}>
+                <ChevronLeft className="w-4 h-4 mr-2" />
+                Back
+            </Button>
+
+            {/* ===== Progress ===== */}
+            <div className="text-center text-muted-foreground">
+                Question {index + 1} / {questions.length}
+            </div>
+
+            {/* ===== Question Card ===== */}
             <Card>
-                <CardContent>
+                <CardHeader>
+                    <CardTitle className="text-center text-2xl">
+                        What's this sign?
+                    </CardTitle>
+                </CardHeader>
+
+                <CardContent className="space-y-6">
+                    {/* Video */}
                     <video
                         key={q.id}
                         src={q.video}
@@ -80,45 +116,45 @@ export default function MultipleChoicePractice({
                         playsInline
                         className="mx-auto rounded-lg w-full max-w-md"
                     />
+
+                    {/* Choices */}
+                    <div className="grid grid-cols-2 gap-4">
+                        {q.choices.map((choice) => {
+                            const isSelected = selected === choice;
+                            const isCorrect = choice === q.answer;
+
+                            let style = "";
+                            if (selected) {
+                                if (isCorrect) {
+                                    style = "bg-green-500 text-white";
+                                } else if (isSelected) {
+                                    style = "bg-red-500 text-white";
+                                }
+                            }
+
+                            return (
+                                <Button
+                                    key={choice}
+                                    size="lg"
+                                    disabled={!!selected}
+                                    onClick={() => setSelected(choice)}
+                                    className={style}
+                                >
+                                    {choice}
+                                </Button>
+                            );
+                        })}
+                    </div>
                 </CardContent>
             </Card>
 
-            {/* Hiển thị các lựa chọn câu trả lời */}
-            <div className="grid grid-cols-2 gap-4">
-                {q.choices.map((choice) => {
-                    const correct = selected && choice === q.answer;
-                    const wrong = selected === choice && choice !== q.answer;
-
-                    return (
-                        <Button
-                            key={choice}
-                            size="lg"
-                            disabled={!!selected} // Vô hiệu hóa khi đã chọn đáp án
-                            onClick={() => setSelected(choice)}
-                            className={
-                                correct ? "bg-green-500 text-white" : wrong ? "bg-red-500 text-white" : ""
-                            }
-                        >
-                            {choice}
-                        </Button>
-                    );
-                })}
-            </div>
-
-            {/* Nút Next hoặc Finish */}
+            {/* ===== Next / Finish ===== */}
             {selected && (
                 <div className="flex justify-center">
-                    <Button
-                        disabled={checking}
-                        onClick={() => {
-                            if (index + 1 < questions.length) {
-                                setIndex(index + 1); // Chuyển sang câu hỏi tiếp theo
-                            } else {
-                                onComplete(); // Hoàn thành bài kiểm tra khi hết câu hỏi
-                            }
-                        }}
-                    >
-                        {index + 1 < questions.length ? "Next" : "Finish"}
+                    <Button onClick={next}>
+                        {index + 1 < questions.length
+                            ? "Next"
+                            : "Finish"}
                     </Button>
                 </div>
             )}
