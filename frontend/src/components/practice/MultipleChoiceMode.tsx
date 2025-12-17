@@ -1,9 +1,7 @@
-// components/practice/MultipleChoiceMode.tsx
-
 import type { Question } from "@/types/type"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 export default function MultipleChoiceMode({
     data,
@@ -17,6 +15,11 @@ export default function MultipleChoiceMode({
     const q = data[index]
     const [selected, setSelected] = useState<string | null>(null)
 
+    // 🔥 RESET khi sang câu mới
+    useEffect(() => {
+        setSelected(null)
+    }, [index])
+
     return (
         <div className="space-y-6">
             <Card>
@@ -27,7 +30,15 @@ export default function MultipleChoiceMode({
                 </CardHeader>
 
                 <CardContent className="space-y-6">
-                    <video src={q.video} controls className="mx-auto rounded-lg" />
+                    <video
+                        key={q.id}
+                        src={q.video}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="mx-auto rounded-lg w-full max-w-md"
+                    />
 
                     <div className="grid grid-cols-2 gap-4">
                         {q.choices.map((c) => {

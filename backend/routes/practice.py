@@ -15,7 +15,7 @@ router = APIRouter(prefix="/practice")
 BASE_DIR = os.path.dirname(__file__)
 
 def load_words() -> List[Lesson]:
-    path = os.path.join(BASE_DIR, "../utils/words.csv")
+    path = os.path.join(BASE_DIR, "../data/words.csv")
     lessons: List[Lesson] = []
 
     with open(path, newline="", encoding="utf-8") as f:
@@ -24,6 +24,7 @@ def load_words() -> List[Lesson]:
             lessons.append(
                 Lesson(
                     id=int(row["id"]),
+                    definition = row["definition"],
                     word=row["word"],
                     instruction=row.get("instruction", ""),
                     source=row.get("source", ""),
@@ -34,7 +35,7 @@ def load_words() -> List[Lesson]:
 
 
 def load_questions():
-    path = os.path.join(BASE_DIR, "../utils/questions.csv")
+    path = os.path.join(BASE_DIR, "../data/questions.csv")
     questions = []
 
     with open(path, newline="", encoding="utf-8") as f:
