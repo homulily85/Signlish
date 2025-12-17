@@ -4,9 +4,8 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
-import React from "react"
 
-export function PrivacySettings(): React.ReactElement {
+export function PrivacySettings() {
   return (
     <Card>
       <CardHeader>
@@ -58,3 +57,4 @@ export function PrivacySettings(): React.ReactElement {
     </Card>
   );
 }
+

@@ -3,35 +3,28 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Camera } from "lucide-react"
-// import { fetchUserProfile } from "@/lib/api"
+import { fetchUserProfile } from "@/lib/api"
 
-interface UserProfile {
-  fullname?: string
-  name?: string
-  username?: string
-  avatarUrl?: string
-}
+export function ProfileHeader() {
+  const [profile, setProfile] = useState(null)
 
-export function ProfileHeader(): React.ReactElement {
-  const [profile, setProfile] = useState<UserProfile | null>(null)
-
-//   useEffect(() => {
-//     const token = localStorage.getItem('token')
-//     if (!token) return
-//     (async () => {
-//       try {
-//         const data = await fetchUserProfile(token)
-//         // `fetchUserProfile` returns the user object
-//         setProfile(data)
-//       } catch (err) {
-//         console.error('Failed to load profile', err)
-//       }
-//     })()
-//   }, [])
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (!token) return
+    (async () => {
+      try {
+        const data = await fetchUserProfile(token)
+        // `fetchUserProfile` returns the user object
+        setProfile(data)
+      } catch (err) {
+        console.error('Failed to load profile', err)
+      }
+    })()
+  }, [])
 
   const fullname = profile?.fullname || profile?.name || 'Anonymous'
   const username = profile?.username || ''
-  const initials = (fullname.split(' ').map(s => s[0] || '').join('') || username.slice(0, 2)).toUpperCase()
+  const initials = (fullname.split(' ').map(s => s[0] || '').join('') || username.slice(0,2)).toUpperCase()
 
   return (
     <Card>
@@ -65,3 +58,4 @@ export function ProfileHeader(): React.ReactElement {
     </Card>
   )
 }
+

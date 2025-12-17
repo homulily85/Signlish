@@ -5,9 +5,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useTheme } from "@/components/theme-provider"
-import React from "react"
 
-export function AppearanceSettings(): React.ReactElement {
+export function AppearanceSettings() {
   const { setTheme } = useTheme()
 
   return (
@@ -43,3 +42,4 @@ export function AppearanceSettings(): React.ReactElement {
     </Card>
   );
 }
+
