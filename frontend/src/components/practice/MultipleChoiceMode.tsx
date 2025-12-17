@@ -1,27 +1,104 @@
-import type { Question } from "@/types/type"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { useEffect, useState } from "react"
+"use client";
 
-export default function MultipleChoiceMode({
-    data,
-    index,
-    onNext,
-}: {
-    data: Question[]
-    index: number
-    onNext: () => void
-}) {
-    const q = data[index]
-    const [selected, setSelected] = useState<string | null>(null)
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft } from "lucide-react";
 
-    // 🔥 RESET khi sang câu mới
+type Question = {
+    id: number;
+    video: string;
+    answer: string;
+    choices: string[];
+};
+
+type Props = {
+    category: string;
+    onBack: () => void;
+    onComplete: () => void;
+};
+
+export default function MultipleChoicePractice({
+    category,
+    onBack,
+    onComplete,
+}: Props) {
+    const [questions, setQuestions] = useState<Question[]>([]);
+    const [index, setIndex] = useState(0);
+    const [selected, setSelected] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    const q = questions[index];
+
+    /* ================= FETCH QUESTIONS ================= */
     useEffect(() => {
-        setSelected(null)
-    }, [index])
+        setLoading(true);
+        fetch(
+            `http://localhost:8000/lessons/categories/${category}/questions`
+        )
+            .then((res) => res.json())
+            .then((data) => {
+                setQuestions(data);
+                setIndex(0);
+            })
+            .finally(() => setLoading(false));
+    }, [category]);
 
+    /* ================= RESET ON QUESTION CHANGE ================= */
+    useEffect(() => {
+        setSelected(null);
+    }, [index]);
+
+    /* ================= HANDLERS ================= */
+    const handleNext = async () => {
+        if (!q || !selected) return;
+
+        if (selected !== q.answer) {
+            alert("Wrong answer, try again!");
+            return;
+        }
+
+        // Câu cuối → hoàn thành
+        if (index + 1 >= questions.length) {
+            await fetch(
+                `http://localhost:8000/lessons/categories/${category}/questions/complete`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: "test@example.com" }),
+                }
+            );
+
+            onComplete();
+            return;
+        }
+
+        // Sang câu tiếp theo
+        setIndex((i) => i + 1);
+    };
+
+    /* ================= LOADING ================= */
+    if (loading || !q) {
+        return (
+            <div className="p-6 text-center text-muted-foreground">
+                Loading questions...
+            </div>
+        );
+    }
+
+    /* ================= UI ================= */
     return (
         <div className="space-y-6">
+            {/* ===== Back button ===== */}
+            <button
+                onClick={onBack}
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+            >
+                <ChevronLeft className="h-4 w-4" />
+                Back
+            </button>
+
+            {/* ===== Question Card ===== */}
             <Card>
                 <CardHeader>
                     <CardTitle className="text-center text-2xl">
@@ -30,6 +107,7 @@ export default function MultipleChoiceMode({
                 </CardHeader>
 
                 <CardContent className="space-y-6">
+                    {/* Video */}
                     <video
                         key={q.id}
                         src={q.video}
@@ -40,17 +118,21 @@ export default function MultipleChoiceMode({
                         className="mx-auto rounded-lg w-full max-w-md"
                     />
 
+                    {/* Choices */}
                     <div className="grid grid-cols-2 gap-4">
-                        {q.choices.map((c) => {
-                            const correct = selected && c === q.answer
-                            const wrong = selected === c && c !== q.answer
+                        {q.choices.map((choice) => {
+                            const correct =
+                                selected && choice === q.answer;
+                            const wrong =
+                                selected === choice &&
+                                choice !== q.answer;
 
                             return (
                                 <Button
-                                    key={c}
+                                    key={choice}
                                     size="lg"
                                     disabled={!!selected}
-                                    onClick={() => setSelected(c)}
+                                    onClick={() => setSelected(choice)}
                                     className={
                                         correct
                                             ? "bg-green-500 text-white"
@@ -59,19 +141,24 @@ export default function MultipleChoiceMode({
                                                 : ""
                                     }
                                 >
-                                    {c}
+                                    {choice}
                                 </Button>
-                            )
+                            );
                         })}
                     </div>
                 </CardContent>
             </Card>
 
+            {/* ===== Next / Finish ===== */}
             {selected && (
                 <div className="flex justify-center">
-                    <Button onClick={onNext}>Next</Button>
+                    <Button onClick={handleNext}>
+                        {index + 1 < questions.length
+                            ? "Next"
+                            : "Finish"}
+                    </Button>
                 </div>
             )}
         </div>
-    )
+    );
 }

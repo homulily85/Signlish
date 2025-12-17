@@ -63,7 +63,8 @@ async def weekly_signs_learned(user_id: str = Query(..., description="ID of the 
     activity_col = get_activity_collection()
     today = date.today()
     start = today - timedelta(days=6)
-
+    progress = user.get("progress", {})
+    completed = sum(len(v) for k, v in progress.items() if isinstance(v, list))
     records = list(activity_col.find({
         "user_id": ObjectId(user_id),
         "date": {"$gte": start.isoformat(), "$lte": today.isoformat()}
@@ -83,11 +84,11 @@ async def weekly_signs_learned(user_id: str = Query(..., description="ID of the 
             "day": d.strftime("%a"),
             "learned": value
         })
-
+    print(data, total)
     return {
         "data": data,
-        "total_this_week": total,
-        "total_last_week": 122
+        "total_this_week": completed,
+        "total_last_week": total
     }
 
 @router.get("/progress", response_model=LessonProgressResponse)
@@ -121,14 +122,15 @@ async def get_streak(user_id: str = Query(..., description="ID of the user")):
         raise HTTPException(status_code=404, detail="User not found")
 
     streak = user.get("streak", {"current": 0, "longest": 0})
+    
 
     records = activity_col.find({"user_id": ObjectId(user_id)})
     checkins = [r["date"] for r in records]
-
     return {
         "current": streak.get("current", 0),
         "longest": streak.get("longest", 0),
-        "checkins": checkins
+        "checkins": checkins or [] 
     }
+
 
 
