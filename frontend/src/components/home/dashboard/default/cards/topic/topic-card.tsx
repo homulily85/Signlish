@@ -1,4 +1,5 @@
 import { BookOpen, Clock, Trophy } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -6,6 +7,7 @@ import {
 } from "@/components/ui/card";
 
 type TopicCardProps = {
+  id: string;
   title: string;
   image: string;
   lessons: number;
@@ -14,18 +16,27 @@ type TopicCardProps = {
 };
 
 export default function TopicCard({
+  id,
   title,
   image,
   lessons,
   hours,
   progress,
 }: TopicCardProps) {
+  const navigate = useNavigate();
   const safeProgress = Math.min(100, Math.max(0, progress ?? 0));
 
   const isDone = safeProgress === 100;
 
+  const handleClick = () => {
+    navigate(`/learning/${id}`);
+  };
+
   return (
-    <Card className="overflow-hidden transition hover:shadow-md">
+    <Card 
+      className="overflow-hidden transition hover:shadow-md cursor-pointer"
+      onClick={handleClick}
+    >
       {/* IMAGE */}
       <div className="relative h-40 w-full">
         <img
