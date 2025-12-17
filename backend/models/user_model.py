@@ -14,6 +14,5 @@ class User(BaseModel):
     name: str
     email: str
     password: str
-    # progress: category -> list of word ids, or category_flashcard -> bool
     progress: Optional[Dict[str, Union[List[int], bool]]] = None
     streak: Streak = Streak()
