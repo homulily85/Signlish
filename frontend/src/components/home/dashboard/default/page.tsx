@@ -11,7 +11,7 @@ export default function Page() {
       <div className="grid gap-4 lg:grid-cols-3 lg:grid-rows-2">
         <div className="lg:col-span-2 lg:row-span-2 h-full">
           <WelcomeCard
-            name="VietViet" />
+            name="Viet Anh" />
         </div>
 
         <SubscriptionsCard />

@@ -37,9 +37,10 @@ export default function LearningSidebar({
       </div>
 
       {/* Lesson List */}
-      <ScrollArea className="flex-1">
-        <div className="p-4 space-y-2">
-          {lessons.map((lesson, index) => {
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="p-4 space-y-2">
+            {lessons.map((lesson, index) => {
             const isActive = currentLessonId === lesson.id && !isPracticeMode;
             const isCompleted = completedLessonIds.has(lesson.id);
 
@@ -71,39 +72,40 @@ export default function LearningSidebar({
                     )}
                   </div>
                   <span className="text-sm font-medium text-left flex-1">
-                    Lesson {index + 1}: {lesson.word}
+                    {lesson.word}
                   </span>
                 </div>
               </Button>
             );
           })}
-        </div>
+          </div>
 
-        <Separator className="my-4" />
+          <Separator className="my-4" />
 
-        {/* Practice Section */}
-        <div className="p-4 pb-6">
-          <Button
-            variant={isPracticeMode ? "secondary" : "ghost"}
-            className={`w-full justify-start h-auto py-4 px-4 ${isPracticeMode
-              ? "bg-purple-100 dark:bg-purple-950 hover:bg-purple-200 dark:hover:bg-purple-900"
-              : ""
-              }`}
-            onClick={onPracticeSelect}
-          >
-            <div className="flex items-center gap-3 w-full">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-purple-500 text-white">
-                <Trophy className="h-5 w-5" />
+          {/* Practice Section */}
+          <div className="p-4 pb-6">
+            <Button
+              variant={isPracticeMode ? "secondary" : "ghost"}
+              className={`w-full justify-start h-auto py-4 px-4 ${isPracticeMode
+                ? "bg-purple-100 dark:bg-purple-950 hover:bg-purple-200 dark:hover:bg-purple-900"
+                : ""
+                }`}
+              onClick={onPracticeSelect}
+            >
+              <div className="flex items-center gap-3 w-full">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-purple-500 text-white">
+                  <Trophy className="h-5 w-5" />
+                </div>
+                <div className="text-left flex-1">
+                  <div className="text-sm font-bold">Practice</div>
+                  <div className="text-xs text-muted-foreground">Test your knowledge</div>
+                </div>
+                {isPracticeMode && <Badge variant="secondary">Active</Badge>}
               </div>
-              <div className="text-left flex-1">
-                <div className="text-sm font-bold">Practice</div>
-                <div className="text-xs text-muted-foreground">Test your knowledge</div>
-              </div>
-              {isPracticeMode && <Badge variant="secondary">Active</Badge>}
-            </div>
-          </Button>
-        </div>
-      </ScrollArea>
+            </Button>
+          </div>
+        </ScrollArea>
+      </div>
     </Card>
   );
 }

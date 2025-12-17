@@ -33,10 +33,30 @@ export function useTopics(email: string) {
                     const total = progress?.total ?? 0;
                     const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
 
+                    // Map category to thumbnail image
+                    const thumbnailMap: Record<string, string> = {
+                        activity: "/src/assets/topic-thumbnail/activity.jpg",
+                        animal: "/src/assets/topic-thumbnail/animal.jpg",
+                        attribute: "/src/assets/topic-thumbnail/attribute.jpg",
+                        color: "/src/assets/topic-thumbnail/color.jpg",
+                        communication: "/src/assets/topic-thumbnail/communication.jpg",
+                        feeling: "/src/assets/topic-thumbnail/feeling.jpg",
+                        "food-and-drink": "/src/assets/topic-thumbnail/food-and-drink.jpg",
+                        job: "/src/assets/topic-thumbnail/job.jpg",
+                        people: "/src/assets/topic-thumbnail/people.jpg",
+                        place: "/src/assets/topic-thumbnail/place.jpg",
+                        plant: "/src/assets/topic-thumbnail/plant.jpg",
+                        preposition: "/src/assets/topic-thumbnail/preposition.jpg",
+                        pronouns: "/src/assets/topic-thumbnail/pronouns.jpg",
+                        question: "/src/assets/topic-thumbnail/question.jpg",
+                        thing: "/src/assets/topic-thumbnail/thing.jpg",
+                        time: "/src/assets/topic-thumbnail/time.jpg",
+                    };
+
                     return {
                         id: cat,
                         title: cat.charAt(0).toUpperCase() + cat.slice(1), // capitalize
-                        image: `/images/${cat}.jpg`, // bạn tự map image
+                        image: thumbnailMap[cat] || "/src/assets/topic-thumbnail/thing.jpg", // fallback to thing.jpg
                         lessons: total,
                         progress: percentage,
                         hours: Math.round(total * 0.1), // ví dụ 0.1h mỗi lesson
