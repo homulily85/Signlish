@@ -8,6 +8,7 @@ import {Badge} from "@/components/ui/badge"
 import {Separator} from "@/components/ui/separator"
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command"
 import type {DictionaryItem} from "@/types/type.ts";
+import getDictionary from "@/services/dictionaryService.ts";
 
 export default function SignLanguageDictionary() {
   const [selectedWord, setSelectedWord] = React.useState<DictionaryItem | null>(null)
@@ -19,6 +20,23 @@ export default function SignLanguageDictionary() {
   const videoRef = React.useRef<HTMLVideoElement | null>(null)
   const [isPlaying, setIsPlaying] = React.useState(false);
 
+  const pickRandom = React.useCallback(
+      <T, >(arr: T[], count: number, seed: number): T[] => {
+        let value = seed
+        const rand = () => {
+          value = (value * 16807) % 2147483647
+          return (value - 1) / 2147483646
+        }
+
+        const copy = [...arr]
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(rand() * (i + 1))
+          ;[copy[i], copy[j]] = [copy[j], copy[i]]
+        }
+        return copy.slice(0, count)
+      },
+      []
+  )
 
   React.useEffect(() => {
     if (searchOpen && searchInputRef.current) {
@@ -29,13 +47,13 @@ export default function SignLanguageDictionary() {
   }, [searchOpen])
 
   React.useEffect(() => {
-    fetch("http://localhost:8000/dictionary").then((res) => {
-      res.json().then((data) => {
-        setDictionary([...data])
-        setPopularWords(data.slice(0, 20))
-      })
+    getDictionary().then((data) => {
+      setDictionary(data)
+
+      const seed = new Date().toDateString().length
+      setPopularWords(pickRandom(data, 20, seed))
     })
-  }, [])
+  }, [pickRandom])
 
   // const filteredWords = dictionary.filter((word) => word.word.toLowerCase().includes(searchValue.toLowerCase()))
   // Tránh bị khựng UI khi ấn vào Search box

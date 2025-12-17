@@ -9,42 +9,6 @@ import { ChevronLeft, BookOpen, Grid3x3, Camera, Lightbulb, Trophy } from "lucid
 import Webcam from "react-webcam"
 import type { VocabularyWord } from "@/types/lesson"
 
-// Mock practice data (fallback)
-const defaultPracticeData: VocabularyWord[] = [
-  {
-    id: "hello",
-    word: "Hello",
-    definition: "A greeting used when meeting someone",
-    videoUrl: "/placeholder.svg?height=300&width=400",
-    instruction: "Wave your hand from side to side near your head",
-    wrongOptions: ["Goodbye", "Thank You", "Please"],
-  },
-  {
-    id: "thank-you",
-    word: "Thank You",
-    definition: "An expression of gratitude",
-    videoUrl: "/placeholder.svg?height=300&width=400",
-    instruction: "Move your hand from your chin outward",
-    wrongOptions: ["Hello", "Sorry", "Welcome"],
-  },
-  {
-    id: "sorry",
-    word: "Sorry",
-    definition: "An expression of apology or regret",
-    videoUrl: "/placeholder.svg?height=300&width=400",
-    instruction: "Make a circular motion over your chest with your fist",
-    wrongOptions: ["Excuse Me", "Hello", "Help"],
-  },
-  {
-    id: "please",
-    word: "Please",
-    definition: "A polite word used when asking for something",
-    videoUrl: "/placeholder.svg?height=300&width=400",
-    instruction: "Rub your hand in a circular motion on your chest",
-    wrongOptions: ["Thank You", "Yes", "No"],
-  },
-]
-
 type PracticeMode = "selection" | "flashcard" | "multiple-choice" | "vision" | "completion"
 
 type PracticeProps = {
@@ -54,13 +18,12 @@ type PracticeProps = {
   onBack?: () => void;
 };
 
-export default function Practice({ 
-  mode: initialMode = "selection", 
-  vocabularyWords, 
+export default function Practice({
+  mode: initialMode = "selection",
+  vocabularyWords,
   onComplete,
-  onBack 
+  onBack
 }: PracticeProps) {
-  const practiceData = vocabularyWords || defaultPracticeData;
   const [mode, setMode] = useState<PracticeMode>(initialMode)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
@@ -69,11 +32,12 @@ export default function Practice({
   const [detectedWord, setDetectedWord] = useState("")
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
 
-  const currentWord = practiceData[currentIndex]
-  const isLastWord = currentIndex === practiceData.length - 1
+  const currentWord = vocabularyWords[currentIndex]
+  const isLastWord = currentIndex === vocabularyWords.length - 1
 
   // Simulate AI detection for Vision Mode
   useEffect(() => {
+    console.log(currentWord);
     if (mode === "vision" && currentWord) {
       setDetectedWord("")
       setIsCorrect(null)
@@ -220,7 +184,7 @@ export default function Practice({
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-6 text-lg">
-                You've completed all {practiceData.length} words! Great job practicing your sign language skills.
+                You've completed all {vocabularyWords.length} words! Great job practicing your sign language skills.
               </p>
               <Button onClick={handleBackToPractice} size="lg">
                 Back to Menu
@@ -242,7 +206,7 @@ export default function Practice({
 
         <div className="mb-6 flex items-center justify-between">
           <Badge variant="secondary" className="text-lg px-4 py-2">
-            {currentIndex + 1} / {practiceData.length}
+            {currentIndex + 1} / {vocabularyWords.length}
           </Badge>
         </div>
 
