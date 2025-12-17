@@ -1,3 +1,5 @@
+"use client";
+
 import {
   PieChart,
   Pie,
@@ -12,50 +14,65 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-type LessonProgressProps = {
-  completedLessons?: number;
-  totalLessons?: number;
+import { useEffect, useState } from "react";
+
+type LessonProgressData = {
+  completedLessons: number;
+  totalLessons: number;
 };
 
-export default function LessonProgressChart({
-  completedLessons = 24,
-  totalLessons = 80,
-}: LessonProgressProps) {
+export default function LessonProgressChart() {
+  const [data, setData] = useState<LessonProgressData>({
+    completedLessons: 0,
+    totalLessons: 0,
+  });
+
+  // Fetch lesson progress from backend
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+    if (!user) return;
+
+    const userId = JSON.parse(user)._id;
+
+    fetch(`http://localhost:8000/dashboard/progress?user_id=${userId}`)
+      .then((res) => res.json())
+      .then((res: LessonProgressData) => {
+        setData({
+          completedLessons: res.completed,
+          totalLessons: res.total,
+        });
+      })
+      .catch((err) => console.error("Failed to fetch lesson progress:", err));
+  }, []);
+
   const remainingLessons = Math.max(
-    totalLessons - completedLessons,
+    data.totalLessons - data.completedLessons,
     0
   );
 
   const percentage =
-    totalLessons > 0
-      ? Math.round((completedLessons / totalLessons) * 100)
+    data.totalLessons > 0
+      ? Math.round((data.completedLessons / data.totalLessons) * 100)
       : 0;
 
-  const data = [
-    { name: "Completed", value: completedLessons },
+  const pieData = [
+    { name: "Completed", value: data.completedLessons },
     { name: "Remaining", value: remainingLessons },
   ];
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">
-          Lesson Progress
-        </CardTitle>
+        <CardTitle className="text-base">Lesson Progress</CardTitle>
       </CardHeader>
 
       <CardContent className="flex items-center gap-6">
         {/* ===== DONUT ===== */}
         <div className="relative h-[120px] w-[120px] shrink-0">
-          {/* 
-            Wrapper quyết định màu cho từng phần
-            chart-1  → completed
-            muted     → remaining
-          */}
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={data}
+                data={pieData}
                 dataKey="value"
                 innerRadius={40}
                 outerRadius={55}
@@ -65,7 +82,6 @@ export default function LessonProgressChart({
               >
                 {/* Completed */}
                 <Cell className="text-[hsl(var(--chart-1))]" fill="currentColor" />
-
                 {/* Remaining */}
                 <Cell className="text-muted" fill="currentColor" />
               </Pie>
@@ -74,21 +90,15 @@ export default function LessonProgressChart({
 
           {/* CENTER TEXT */}
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-            <div className="text-lg font-bold text-foreground">
-              {percentage}%
-            </div>
-            <div className="text-[11px] text-muted-foreground">
-              completed
-            </div>
+            <div className="text-lg font-bold text-foreground">{percentage}%</div>
+            <div className="text-[11px] text-muted-foreground">completed</div>
           </div>
         </div>
 
         {/* ===== INFO ===== */}
         <div className="space-y-2">
           <div className="text-sm">
-            <span className="font-medium text-foreground">
-              {completedLessons}
-            </span>{" "}
+            <span className="font-medium text-foreground">{data.completedLessons}</span>{" "}
             lessons completed
           </div>
 

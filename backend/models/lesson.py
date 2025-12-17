@@ -1,9 +1,12 @@
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, Field
+
 
 class Lesson(BaseModel):
-    id: int
-    word: str
-    instruction: str
-    source: str
-    category: str
+    id: int = Field(..., example=1)
+    word: str = Field(..., example="Hello")
+    instruction: str = Field("", example="Wave your hand")
+    source: str = Field("", example="video_hello.mp4")
+    category: str = Field(..., example="greetings")
+
+    class Config:
+        orm_mode = True
