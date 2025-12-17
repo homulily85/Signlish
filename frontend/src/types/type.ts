@@ -10,6 +10,7 @@ export type DictionaryItem = {
 export interface Lesson {
     id: number
     word: string
+    definition: string
     instruction: string
     source?: string
     category: string
