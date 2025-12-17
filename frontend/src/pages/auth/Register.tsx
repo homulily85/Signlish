@@ -44,7 +44,12 @@ export default function SignupPage() {
         <div className="flex justify-center gap-2 md:justify-start">
           <a href="#" className="flex items-center gap-2 font-medium">
             <div className="h-12 w-auto overflow-hidden flex items-center">
-              <Logo className="h-12 w-auto text-foreground transition-colors" preserveAspectRatio="xMidYMid meet" />
+              <Logo
+                width={undefined}
+                height={undefined}
+                className="h-12 w-auto text-foreground transition-colors"
+                preserveAspectRatio="xMidYMid meet"
+              />
             </div>
           </a>
         </div>
