@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
+import tung from "@/assets/tung.jpg";
 
 import {
   Card,
@@ -40,7 +41,7 @@ export const HeroCards = () => {
       <Card className="absolute right-[20px] top-4 w-80 flex flex-col justify-center items-center drop-shadow-xl shadow-black/10 dark:shadow-white/10">
         <CardHeader className="mt-8 flex justify-center items-center pb-2">
           <img
-            src="https://scontent.fhan5-3.fna.fbcdn.net/v/t39.30808-6/481821748_1805906696867449_3678600243531357011_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=a5f93a&_nc_ohc=lxToxFEGjtIQ7kNvwFFtNQY&_nc_oc=AdkjdV6NjCTfPpvYx2EL58IBday3n-qoHTe6_4LuaPLhP3yscvu0ELtY_3oHPWM7XCbmAfiQKhX1py7eETBz_7Xk&_nc_zt=23&_nc_ht=scontent.fhan5-3.fna&_nc_gid=PGlmp8bwsaayiQFvui8xDA&oh=00_AfmxtZeBM5D4bqXJsUtEHyHFyer_LVFldT9g8UNGXOwb6A&oe=693A7560"
+            src={tung}
             alt="user avatar"
             className="absolute grayscale-[0%] -top-12 rounded-full w-24 h-24 aspect-square object-cover"
           />

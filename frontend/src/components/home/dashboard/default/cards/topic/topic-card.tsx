@@ -22,15 +22,6 @@ export default function TopicCard({
 }: TopicCardProps) {
   const safeProgress = Math.min(100, Math.max(0, progress ?? 0));
 
-  // ===== PROGRESS COLOR LOGIC =====
-  const getProgressColor = () => {
-    if (safeProgress < 30) return "var(--destructive)";
-    if (safeProgress < 60) return "var(--chart-1)";
-    if (safeProgress < 90) return "var(--chart-4)";
-    if (safeProgress < 100) return "var(--chart-3)";
-    return "var(--chart-2)";
-  };
-
   const isDone = safeProgress === 100;
 
   return (
@@ -51,10 +42,9 @@ export default function TopicCard({
           {/* BAR */}
           <div className="relative h-2 flex-1 rounded-full bg-muted overflow-hidden">
             <div
-              className="h-full rounded-full transition-all duration-500"
+              className="h-full rounded-full transition-all duration-500 bg-primary"
               style={{
                 width: `${safeProgress}%`,
-                backgroundColor: getProgressColor(),
               }}
             />
           </div>
