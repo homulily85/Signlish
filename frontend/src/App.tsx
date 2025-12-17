@@ -17,6 +17,7 @@ import Dictionary from "./pages/Dictionary"
 import TranslatePage from "./pages/Translate"
 import Home from "./pages/Home"
 import ExploreCourses from "./pages/ExploreCourses"
+import PracticePage from "./pages/Practice"
 
 function AppContent() {
   return (
@@ -37,6 +38,7 @@ function AppContent() {
           <Route path="/" element={<Landing />} />
           <Route path="/dictionary" element={<Dictionary />} />
           <Route path="/translate" element={<TranslatePage />} />
+          <Route path="/practice" element={<PracticePage />} />
         </Route>
 
         {/* Nhóm các trang CÓ Navbar KHÔNG CÓ Footer */}
@@ -52,6 +54,7 @@ function AppContent() {
         >
           <Route path="/learn" element={<ExploreCourses />} />
           <Route path="/home" element={<Home />} />
+          <Route path="/practice" element={<PracticePage />} />
           <Route path="500" element={<Error500 />} />
           <Route path="503" element={<Error503 />} />
           <Route path="403" element={<Error403 />} />
