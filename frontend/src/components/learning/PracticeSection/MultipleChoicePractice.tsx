@@ -1,4 +1,3 @@
-// components/practice/modes/MultipleChoicePractice.tsx
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,80 +21,107 @@ export default function MultipleChoicePractice({
     onBack,
     onComplete,
 }: Props) {
-    const [question, setQuestion] = useState<Question | null>(null);
-    const [selected, setSelected] = useState<string | null>(null);
-    const [checking, setChecking] = useState(false);
+    const [questions, setQuestions] = useState<Question[]>([]); // Lưu tất cả câu hỏi
+    const [selected, setSelected] = useState<string | null>(null); // Câu trả lời được chọn
+    const [index, setIndex] = useState<number>(0); // Chỉ số câu hỏi hiện tại
+    const [checking, setChecking] = useState(false); // Cờ kiểm tra câu trả lời
 
-    const email = "test@example.com"; // TODO: auth context
-
-    /* ---------------- fetch question ---------------- */
+    // Fetch câu hỏi từ API
     useEffect(() => {
-        fetch(`/api/lessons/${category}/question`)
-            .then(res => res.json())
-            .then(setQuestion);
+        fetch(`http://localhost:8000/lessons/categories/${category}/questions`)
+            .then((res) => res.json())
+            .then(setQuestions);
     }, [category]);
 
-    /* ---------------- submit ---------------- */
+    // Reset khi chuyển sang câu hỏi tiếp theo
+    useEffect(() => {
+        setSelected(null);
+    }, [index]);
+
+    const q = questions[index]; // Câu hỏi hiện tại
+
+    // Hàm để kiểm tra câu trả lời
     const submit = async () => {
-        if (!question || !selected) return;
+        if (!q || !selected) return;
 
         setChecking(true);
 
-        if (selected === question.answer) {
-            await fetch(
-                `/api/lessons/${category}/question/complete?email=${email}`,
-                { method: "POST" }
-            );
-            onComplete();
+        // Kiểm tra câu trả lời
+        if (selected === q.answer) {
+            // Gửi thông tin hoàn thành bài kiểm tra
+            await fetch(`http://localhost:8000/lessons/categories/${category}/questions/complete`, {
+                method: "POST",
+                body: JSON.stringify({ email: "test@example.com" }), // Cần gửi email của người dùng
+            });
+            onComplete(); // Kết thúc bài tập
         } else {
-            alert("Wrong answer, try again!");
+            alert("Wrong answer, try again!"); // Nếu trả lời sai
         }
 
         setChecking(false);
     };
 
-    if (!question) {
-        return <div className="p-6 text-center">Loading question...</div>;
+    // Nếu chưa có câu hỏi, hiển thị loading
+    if (questions.length === 0) {
+        return <div className="p-6 text-center">Loading questions...</div>;
     }
 
     return (
-        <div className="max-w-2xl mx-auto p-6 space-y-6">
-            <Button variant="ghost" onClick={onBack}>
-                <ChevronLeft className="w-4 h-4 mr-2" />
-                Back
-            </Button>
-
-            {/* Video */}
+        <div className="space-y-6">
+            {/* Hiển thị video câu hỏi */}
             <Card>
-                <CardContent className="p-4">
+                <CardContent>
                     <video
-                        src={question.video}
-                        controls
-                        className="w-full rounded"
+                        key={q.id}
+                        src={q.video}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="mx-auto rounded-lg w-full max-w-md"
                     />
                 </CardContent>
             </Card>
 
-            {/* Choices */}
-            <div className="grid gap-3">
-                {question.choices.map(choice => (
-                    <Button
-                        key={choice}
-                        variant={selected === choice ? "default" : "outline"}
-                        onClick={() => setSelected(choice)}
-                    >
-                        {choice}
-                    </Button>
-                ))}
+            {/* Hiển thị các lựa chọn câu trả lời */}
+            <div className="grid grid-cols-2 gap-4">
+                {q.choices.map((choice) => {
+                    const correct = selected && choice === q.answer;
+                    const wrong = selected === choice && choice !== q.answer;
+
+                    return (
+                        <Button
+                            key={choice}
+                            size="lg"
+                            disabled={!!selected} // Vô hiệu hóa khi đã chọn đáp án
+                            onClick={() => setSelected(choice)}
+                            className={
+                                correct ? "bg-green-500 text-white" : wrong ? "bg-red-500 text-white" : ""
+                            }
+                        >
+                            {choice}
+                        </Button>
+                    );
+                })}
             </div>
 
-            <Button
-                disabled={!selected || checking}
-                onClick={submit}
-                size="lg"
-            >
-                Submit
-            </Button>
+            {/* Nút Next hoặc Finish */}
+            {selected && (
+                <div className="flex justify-center">
+                    <Button
+                        disabled={checking}
+                        onClick={() => {
+                            if (index + 1 < questions.length) {
+                                setIndex(index + 1); // Chuyển sang câu hỏi tiếp theo
+                            } else {
+                                onComplete(); // Hoàn thành bài kiểm tra khi hết câu hỏi
+                            }
+                        }}
+                    >
+                        {index + 1 < questions.length ? "Next" : "Finish"}
+                    </Button>
+                </div>
+            )}
         </div>
     );
 }
