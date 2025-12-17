@@ -56,13 +56,9 @@ export default function MultipleChoicePractice({
 
     /* ================= NEXT / FINISH ================= */
     const next = async () => {
-        if (!q || !selected) return;
+        if (!q) return;
 
-        if (selected !== q.answer) {
-            alert("Wrong answer, try again!");
-            return;
-        }
-
+        // Không kiểm tra đúng/sai ở đây nữa
         if (index + 1 >= questions.length) {
             await fetch(
                 `http://localhost:8000/lessons/categories/${category}/questions/complete`,
@@ -124,11 +120,17 @@ export default function MultipleChoicePractice({
                     {/* Choices */}
                     <div className="grid grid-cols-2 gap-4">
                         {q.choices.map((choice) => {
-                            const correct =
-                                selected && choice === q.answer;
-                            const wrong =
-                                selected === choice &&
-                                choice !== q.answer;
+                            const isSelected = selected === choice;
+                            const isCorrect = choice === q.answer;
+
+                            let style = "";
+                            if (selected) {
+                                if (isCorrect) {
+                                    style = "bg-green-500 text-white";
+                                } else if (isSelected) {
+                                    style = "bg-red-500 text-white";
+                                }
+                            }
 
                             return (
                                 <Button
@@ -136,13 +138,7 @@ export default function MultipleChoicePractice({
                                     size="lg"
                                     disabled={!!selected}
                                     onClick={() => setSelected(choice)}
-                                    className={
-                                        correct
-                                            ? "bg-green-500 text-white"
-                                            : wrong
-                                                ? "bg-red-500 text-white"
-                                                : ""
-                                    }
+                                    className={style}
                                 >
                                     {choice}
                                 </Button>
