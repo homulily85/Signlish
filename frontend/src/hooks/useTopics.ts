@@ -22,7 +22,8 @@ export function useTopics(email: string) {
                 const categories: string[] = await resCategories.json();
 
                 // 2. Lấy progress user
-                const resProgress = await fetch(`http://localhost:8000/lessons/user/progress?email=${email}`);
+                const resProgress = await fetch(`http://localhost:8000/lessons/users/${email}/progress`);
+
                 const progressData = await resProgress.json();
 
                 // 3. Tạo topic array

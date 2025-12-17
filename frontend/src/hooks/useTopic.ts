@@ -23,7 +23,7 @@ export function useTopic(topicSlug: string, email: string) {
         async function fetchTopic() {
             try {
                 // 1. Lấy lessons theo category
-                const res = await fetch(`http://localhost:8000/lessons/${topicSlug}`);
+                const res = await fetch(`http://localhost:8000/lessons/categories/${topicSlug}/lessons`);
                 if (!res.ok) throw new Error("Topic not found");
                 const lessons = await res.json(); // array of Lesson
 

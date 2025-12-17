@@ -55,12 +55,10 @@ def load_questions():
             })
     return questions
 
-
+# Load words and questions
 LESSONS_BY_CATEGORY = load_words_by_category()
 QUESTIONS = load_questions()
 CATEGORIES = list(LESSONS_BY_CATEGORY.keys())
-
-
 
 def update_streak(user_col, email: str):
     today = date.today()
@@ -110,34 +108,37 @@ def log_activity(email: str, minutes=0, signs=0):
     )
 
 
+# Routes for retrieving lessons
 @router.get("/", response_model=List[str])
-async def list_lessons():
+async def list_categories():
+    """List all available categories of lessons."""
     return CATEGORIES
 
-
-@router.get("/{category}", response_model=List[Lesson])
-async def get_lesson(category: str):
+@router.get("/categories/{category}/lessons", response_model=List[Lesson])
+async def get_lessons_by_category(category: str):
+    """Get all lessons in a specific category."""
     if category not in LESSONS_BY_CATEGORY:
-        raise HTTPException(404, "Lesson not found")
+        raise HTTPException(404, "Category not found")
     return LESSONS_BY_CATEGORY[category]
 
-
-
-@router.get("/{category}/flashcards", response_model=List[Lesson])
-async def flashcards(category: str):
+@router.get("/categories/{category}/flashcards", response_model=List[Lesson])
+async def get_flashcards_by_category(category: str):
+    """Get shuffled flashcards for a specific category."""
     if category not in LESSONS_BY_CATEGORY:
-        raise HTTPException(404, "Lesson not found")
+        raise HTTPException(404, "Category not found")
 
     words = LESSONS_BY_CATEGORY[category].copy()
     random.shuffle(words)
     return words
 
-@router.get("/user/progress")
-async def get_progress(email: str):
+# Routes for progress management
+@router.get("/users/{email}/progress")
+async def get_user_progress(email: str):
+    """Get progress for the user (completed lessons in each category)."""
     user = get_user_collection().find_one({"email": email})
     if not user:
         raise HTTPException(404, "User not found")
-
+    
     progress = user.get("progress", {})
     result = {}
 
@@ -148,15 +149,13 @@ async def get_progress(email: str):
             "total": len(LESSONS_BY_CATEGORY[cat]),
             "word_ids": completed
         }
-
     return result
 
-
-
-@router.post("/user/progress/complete")
-async def complete_word(email: str, category: str, word_id: int):
+@router.post("/users/{email}/progress/{category}/lessons/{word_id}/complete")
+async def mark_lesson_complete(email: str, word_id: int, category: str):
+    """Mark a specific lesson as completed by the user."""
     if category not in LESSONS_BY_CATEGORY:
-        raise HTTPException(404, "Lesson not found")
+        raise HTTPException(404, "Category not found")
 
     user_col = get_user_collection()
     user = user_col.find_one({"email": email})
@@ -183,18 +182,22 @@ async def complete_word(email: str, category: str, word_id: int):
     return {"status": "completed"}
 
 
-@router.get("/{category}/question", response_model=Question)
-async def get_question(category: str):
+# Routes for handling questions
+@router.get("/categories/{category}/questions", response_model=List[Question])
+async def get_questions_by_category(category: str):
+    """Get a shuffled list of questions for a specific category."""
     qs = [q for q in QUESTIONS if q["category"] == category]
+    
     if not qs:
-        raise HTTPException(404, "No question")
+        raise HTTPException(404, detail="No questions available for this category")
+    
+    random.shuffle(qs)
+    
+    return [Question(**q) for q in qs]
 
-    return Question(**qs[-1])
-
-
-
-@router.post("/{category}/question/complete")
-async def complete_question(email: str, category: str):
+@router.post("/users/{email}/questions/{category}/complete")
+async def mark_question_complete(email: str, category: str):
+    """Mark a question in a category as completed for the user."""
     user_col = get_user_collection()
     user = user_col.find_one({"email": email})
     if not user:

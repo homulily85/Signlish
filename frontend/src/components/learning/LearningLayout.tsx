@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import LearningSidebar from "@/components/learning/LearningSidebar";
 import LessonContent from "@/components/learning/LessonContent";
-import PracticeSection from "@/components/learning/PracticeSection";
+import PracticeSection from "@/components/learning/PracticeSection/PracticeSection";
 import { useTopic } from "@/hooks/useTopic";
 
 const API_BASE = "http://localhost:8000";
@@ -12,15 +12,34 @@ export default function LearningLayout() {
   const { topicSlug } = useParams<{ topicSlug: string }>();
   const navigate = useNavigate();
 
-
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const email = user?.email;
 
   const { topic, loading } = useTopic(topicSlug!, email);
 
-  const [currentLessonId, setCurrentLessonId] = useState<number | null>(null);
+  const [currentLessonId, setCurrentLessonId] = useState<string | null>(null);
   const [isPracticeMode, setIsPracticeMode] = useState(false);
-  const [completedLessonIds, setCompletedLessonIds] = useState<Set<number>>(new Set());
+  const [completedLessonIds, setCompletedLessonIds] = useState<Set<string>>(new Set());
+
+  // Lấy thông tin tiến trình học tập từ API
+  useEffect(() => {
+    if (!email) return;
+
+    const fetchProgress = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/lessons/users/${email}/progress`);
+        const data = await res.json();
+
+        // Giả sử API trả về một đối tượng với các lesson đã hoàn thành theo category
+        const completedLessons = data[topicSlug]?.word_ids || [];
+        setCompletedLessonIds(new Set(completedLessons));
+      } catch (err) {
+        console.error("Failed to fetch progress:", err);
+      }
+    };
+
+    fetchProgress();
+  }, [email, topicSlug]);
 
   // redirect nếu không có topic
   useEffect(() => {
@@ -39,15 +58,14 @@ export default function LearningLayout() {
   if (loading || !topic) return null;
 
   const currentLesson = topic.lessons.find(l => l.id === currentLessonId) || null;
-  const currentLessonIndex =
-    topic.lessons.findIndex(l => l.id === currentLessonId);
+  const currentLessonIndex = topic.lessons.findIndex(l => l.id === currentLessonId);
 
   const isFirstLesson = currentLessonIndex === 0;
   const isLastLesson = currentLessonIndex === topic.lessons.length - 1;
 
   /* ================= handlers ================= */
 
-  const handleLessonSelect = (lessonId: number) => {
+  const handleLessonSelect = (lessonId: string) => {
     setCurrentLessonId(lessonId);
     setIsPracticeMode(false);
   };
@@ -63,27 +81,30 @@ export default function LearningLayout() {
     }
   };
 
-  const completeLesson = async (lessonId: number) => {
+  const completeLesson = async (lessonId: string) => {
     try {
-      await fetch(`${API_BASE}/lessons/user/progress/complete`, {
+      const lessonIdNum = Number(lessonId);
+      if (isNaN(lessonIdNum)) {
+        console.error("Invalid lesson ID");
+        return;
+      }
+      await fetch(`${API_BASE}/lessons/users/${email}/progress/${String(topic.id)}/lessons/${lessonIdNum}/complete`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          category: topic.id,
-          word_id: lessonId,
-        }),
       });
 
-      setCompletedLessonIds(prev => new Set(prev).add(lessonId));
+      setCompletedLessonIds((prev) => new Set(prev).add(lessonIdNum));
+
     } catch (err) {
       console.error("Complete lesson failed", err);
     }
   };
 
+
   const handleNext = async () => {
     if (!currentLesson) return;
 
+    // Cập nhật tiến trình khi nhấn Next
     await completeLesson(currentLesson.id);
 
     if (isLastLesson) {
@@ -121,6 +142,7 @@ export default function LearningLayout() {
           <PracticeSection
             vocabularyWords={topic.lessons}
             topicTitle={topic.title}
+            category={topic.id}
             onBack={handleBackFromPractice}
           />
         ) : currentLesson ? (
