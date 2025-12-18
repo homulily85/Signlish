@@ -483,19 +483,6 @@ export const Navbar01 = React.forwardRef<HTMLElement, Navbar01Props>(
                         <UserIcon className="mr-3 h-4 w-4" />
                         <span>Account</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="cursor-pointer" onClick={() => navigate("/pastes")}>
-                        <FileTextIcon className="mr-3 h-4 w-4" />
-                        <span>Pastes</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="cursor-pointer" onClick={() => navigate("/gallery")}>
-                        <ImageIcon className="mr-3 h-4 w-4" />
-                        <span>Gallery</span>
-                      </DropdownMenuItem>
-                    </div>
-
-                    <DropdownMenuSeparator />
-
-                    <div className="p-2">
                       <DropdownMenuItem className="cursor-pointer">
                         <MessageSquareIcon className="mr-3 h-4 w-4" />
                         <span>Feedback</span>
