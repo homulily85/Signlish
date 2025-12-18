@@ -9,6 +9,7 @@ from fastapi import APIRouter, HTTPException
 from db import get_user_collection, get_activity_collection
 from models.lesson import Lesson
 from models.question import Question
+from models.dictionary_item import DictionaryItem
 
 router = APIRouter(prefix="/lessons", tags=["Lessons"])
 
@@ -128,6 +129,29 @@ async def get_flashcards_by_category(category: str):
         raise HTTPException(404, "Category not found")
 
     words = LESSONS_BY_CATEGORY[category].copy()
+    random.shuffle(words)
+    return words
+
+@router.get("/categories/{category}/vision", response_model=List[DictionaryItem])
+async def get_flashcards_by_category(category: str):
+    """Get shuffled flashcards for a specific category."""
+    if category not in LESSONS_BY_CATEGORY:
+        raise HTTPException(404, "Category not found")
+
+    result: list[DictionaryItem] = []
+    words = LESSONS_BY_CATEGORY[category].copy()
+    for lesson in words:
+        result.append(
+            DictionaryItem(
+                word=lesson.word,
+                definition=lesson.definition,
+                instruction=lesson.instruction,
+                source=lesson.source,
+                category=lesson.category,
+                id=str(lesson.id),
+            )
+        )
+
     random.shuffle(words)
     return words
 

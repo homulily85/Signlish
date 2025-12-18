@@ -7,6 +7,7 @@ import PracticeSelection from "./PracticeSelection";
 import PracticeCompletion from "./PracticeCompletion";
 import FlashcardPractice from "./FlashcardPractice";
 import MultipleChoicePractice from "./MultipleChoicePractice";
+import VisionPractice from "@/components/learning/PracticeSection/VisonPractice.tsx";
 
 type Props = {
     category: string;
