@@ -17,62 +17,29 @@ import {
   subDays,
   addMonths,
   subMonths,
+  isBefore,
 } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useState } from "react";
-
-interface StreakResponse {
-  checkins: string[];
-  current: number;
-  longest: number;
-}
+import { useMemo, useState } from "react";
 
 export default function StreakCalendar() {
   const today = new Date();
 
-  const [checkIns, setCheckIns] = useState<Date[]>([]);
   const [currentMonth, setCurrentMonth] = useState<Date>(
     startOfMonth(today)
   );
-  const [currentStreak, setCurrentStreak] = useState(0);
-  const [longestStreak, setLongestStreak] = useState(0);
 
-  /* ================= FETCH DATA ================= */
-  useEffect(() => {
-    const user = localStorage.getItem("user");
-    if (!user) return;
+  const last4Days = useMemo(
+    () =>
+      Array.from({ length: 4 }, (_, i) =>
+        subDays(today, i + 1)
+      ),
+    [today]
+  );
 
-    const userId = JSON.parse(user)._id;
-
-    fetch(`http://localhost:8000/dashboard/streak?user_id=${userId}`)
-      .then((res) => res.json())
-      .then((data: StreakResponse) => {
-        setCheckIns(data.checkins.map((d) => new Date(d)));
-        setCurrentStreak(data.current);
-        setLongestStreak(data.longest);
-      })
-      .catch((err) =>
-        console.error("Failed to fetch streak:", err)
-      );
-  }, []);
-
-  /* ================= HELPERS ================= */
-  const isCheckedIn = (day: Date) =>
-    checkIns.some((d) => isSameDay(d, day));
-
-  // Ngày bắt đầu current streak (tính ngược từ hôm nay)
-  const streakStart =
-    currentStreak > 0
-      ? subDays(today, currentStreak - 1)
-      : null;
-
-  const isInCurrentStreak = (day: Date) => {
-    if (!streakStart) return false;
-    return (
-      isCheckedIn(day) &&
-      !isAfter(day, today) &&
-      !isAfter(streakStart, day)
-    );
+  const randomHighlight = (day: Date) => {
+    if (!isBefore(day, subDays(today, 5))) return false;
+    return Math.random() < 0.35;
   };
 
   const daysInMonth = eachDayOfInterval({
@@ -130,7 +97,7 @@ export default function StreakCalendar() {
 
         {/* ===== Calendar days ===== */}
         <div className="grid grid-cols-7 gap-2">
-          {/* Empty cells before month start */}
+          {/* Empty cells */}
           {Array.from({
             length:
               (getDay(startOfMonth(currentMonth)) + 6) %
@@ -140,20 +107,28 @@ export default function StreakCalendar() {
           ))}
 
           {daysInMonth.map((day) => {
-            const checked = isCheckedIn(day);
-            const isFuture = isAfter(day, today);
             const isToday = isSameDay(day, today);
+            const isFuture = isAfter(day, today);
 
             let style =
               "bg-muted text-muted-foreground";
 
-            // 🔥 Current streak
-            if (isInCurrentStreak(day)) {
+            // 🔵 Today → chart-1
+            if (isToday) {
               style =
                 "bg-[var(--chart-1)] text-primary-foreground";
             }
-            // ✅ Check-in cũ (ngoài streak)
-            else if (checked && !isFuture) {
+
+            // 🟢 4 ngày gần nhất → chart-4
+            else if (
+              last4Days.some((d) => isSameDay(d, day))
+            ) {
+              style =
+                "bg-[var(--chart-4)] text-primary-foreground";
+            }
+
+            // 🎲 Các ngày cũ → random chart-4
+            else if (!isFuture && randomHighlight(day)) {
               style =
                 "bg-[var(--chart-4)] text-primary-foreground";
             }
@@ -165,10 +140,8 @@ export default function StreakCalendar() {
                 rounded-full text-sm font-medium
                 transition-colors duration-200
                 ${style}
-                ${isToday && isInCurrentStreak(day)
-                    ? "ring-2 ring-primary ring-offset-2"
-                    : ""
-                  }`}
+                ${isToday ? "ring-2 ring-primary ring-offset-2" : ""}
+              `}
               >
                 {format(day, "d")}
               </div>
@@ -176,24 +149,19 @@ export default function StreakCalendar() {
           })}
         </div>
 
-        {/* ===== Streak info ===== */}
+        {/* ===== Mock info ===== */}
         <div className="flex justify-between text-sm pt-2">
           <span>🔥 Current streak</span>
-          <span className="font-bold">
-            {currentStreak} days
-          </span>
+          <span className="font-bold">5 days</span>
         </div>
 
         <div className="flex justify-between text-sm">
           <span>🏆 Longest streak</span>
-          <span className="font-bold">
-            {longestStreak} days
-          </span>
+          <span className="font-bold">21 days</span>
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Daily check-in keeps your sign language streak
-          alive.
+          This is a UI preview for streak calendar.
         </p>
       </CardContent>
     </Card>

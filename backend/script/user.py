@@ -38,9 +38,9 @@ user_doc = {
     },
     "progress": {
         "pronouns": list(range(1, 7)),     
-        "people": list(range(1, 5)),  
-        "question": list(range(1, 6)),  
-        "communication": list(range(1, 7)),     
+        "people": list(range(8, 12)),  
+        "question": list(range(15, 20)),  
+        "communication": list(range(22, 26)),     
     }
 }
 
@@ -48,8 +48,8 @@ insert_result = users.insert_one(user_doc)
 user_id = insert_result.inserted_id  # Lấy _id mới
 
 # ===== INSERT ACTIVITY =====
-minutes = [30, 45, 20, 60, 40, 75, 50]
-signs = [12, 18, 10, 22, 15, 20, 25]
+minutes = [28, 43, 19, 57, 38, 73, 49]
+signs = [2, 3, 1, 3, 2, 4, 2]
 today = date.today()
 
 for i in range(7):

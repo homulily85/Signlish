@@ -11,8 +11,8 @@ from tensorflow.keras.models import load_model
 
 router = APIRouter(prefix="/sign-to-text")
 
-global_model = load_model('./service/SignLanguageProcessor/models/best_model200.keras')
-with open('./service/SignLanguageProcessor/models/index_to_gloss_200.json', 'r') as f:
+global_model = load_model('./service/SignLanguageProcessor/models/best_model_200_new.keras')
+with open('./service/SignLanguageProcessor/models/index_to_gloss_200_new.json', 'r') as f:
     global_encoder = json.load(f)
 
 
