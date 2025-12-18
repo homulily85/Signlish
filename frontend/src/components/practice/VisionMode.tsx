@@ -3,15 +3,35 @@ import {Button} from "@/components/ui/button.tsx";
 import {Lightbulb} from "lucide-react";
 import {AnimatePresence, motion} from "framer-motion";
 import {useEffect, useRef, useState} from "react";
-import type {DictionaryItem} from "@/types/type.ts";
 import Webcam from "react-webcam";
 
+const data = [
+  {
+    word: "Hello",
+    instruction: "Wave your hand to say hello."
+  },
+  {
+    word: "I/me",
+    instruction: "Using an \"I\" handshape, begin with your hand away from yourself and bring it in until you touch your chest."
+  },
+  {
+    word: "Fine",
+    instruction: "Begin with both hands next to each other in front of you with your palms oriented toward yourself, and your hands diagonal so that your fingers are pointing at your chin. The fingertips of your dominant hand should be touching your chin. Then, move your hands forward a couple of times."
+  },
+  {
+    word: "Thank",
+    instruction: "Start with the fingertips of one hand near your chin, then move your hand forward and slightly downward, away from your face."
+  },
+  {
+    word: "Look",
+    instruction: "With your hands oriented toward each other, move them both in a staggered, circular motion that move from above your shoulders to in front of your face a couple of times."
+  }
+]
+
 export default function VisionMode({
-                                     words,
                                      index,
                                      onNext,
                                    }: {
-  words: DictionaryItem[];
   index: number;
   onNext: () => void;
 }) {
@@ -25,7 +45,7 @@ export default function VisionMode({
   // const intervalRef = useRef<NodeJS.Timeout | null>(null);
   // const streamRef = useRef<MediaStream | null>(null);
 
-  const currentWord = words[index];
+  const currentWord = data[index];
 
   // useEffect(()=>{
   //   if (isCorrect) {
@@ -39,23 +59,18 @@ export default function VisionMode({
   const scenarioRef = useRef(0)
 
   useEffect(() => {
-    if (!currentWord || !words?.length) return
+    if (!currentWord || !data?.length) return
 
     setDetectedWord("")
     setIsCorrect(null)
 
     let isCancelled = false
 
-    const getRandomWord = () => {
-      const filtered = words.filter(w => w.word !== currentWord.word)
-      return filtered[Math.floor(Math.random() * filtered.length)].word
-    }
-
     const delay = (ms: number) =>
         new Promise(resolve => setTimeout(resolve, ms))
 
     const runScenario = async () => {
-      await delay(3000)
+      await delay(4000)
       if (isCancelled) return
 
       const scenario = scenarioRef.current
@@ -63,37 +78,37 @@ export default function VisionMode({
 
       scenarioRef.current = (scenarioRef.current + 1) % 3
 
-      if (scenario === 0) {
+      if (scenario === 1) {
         if (isCancelled) return
-        setDetectedWord(currentWord.word)
+        setDetectedWord(currentWord.word.toLowerCase())
         setIsCorrect(true)
 
-      } else if (scenario === 1) {
+      } else if (scenario === 0) {
         if (isCancelled) return
-        setDetectedWord(getRandomWord())
+        setDetectedWord("sad")
         setIsCorrect(false)
 
-        await delay(2000)
+        await delay(4000)
         if (isCancelled) return
 
-        setDetectedWord(getRandomWord())
+        setDetectedWord("happy")
         setIsCorrect(false)
 
-        await delay(2500)
+        await delay(4500)
         if (isCancelled) return
 
-        setDetectedWord(currentWord.word)
+        setDetectedWord(currentWord.word.toLowerCase())
         setIsCorrect(true)
 
       } else {
         if (isCancelled) return
-        setDetectedWord(getRandomWord())
+        setDetectedWord("sad")
         setIsCorrect(false)
 
-        await delay(2500)
+        await delay(4500)
         if (isCancelled) return
 
-        setDetectedWord(currentWord.word)
+        setDetectedWord(currentWord.word.toLowerCase())
         setIsCorrect(true)
       }
 
@@ -108,7 +123,7 @@ export default function VisionMode({
       isCancelled = true
     }
 
-  }, [currentWord, words, onNext])
+  }, [currentWord, onNext])
 
 
   // // 1. Cleanup function (stops webcam, socket, and intervals)
