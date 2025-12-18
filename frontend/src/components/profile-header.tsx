@@ -3,7 +3,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Camera } from "lucide-react"
-// import { fetchUserProfile } from "@/lib/api"
 
 interface UserProfile {
   fullname?: string
@@ -13,21 +12,12 @@ interface UserProfile {
 }
 
 export function ProfileHeader(): React.ReactElement {
-  const [profile, setProfile] = useState<UserProfile | null>(null)
-
-//   useEffect(() => {
-//     const token = localStorage.getItem('token')
-//     if (!token) return
-//     (async () => {
-//       try {
-//         const data = await fetchUserProfile(token)
-//         // `fetchUserProfile` returns the user object
-//         setProfile(data)
-//       } catch (err) {
-//         console.error('Failed to load profile', err)
-//       }
-//     })()
-//   }, [])
+  const [profile, setProfile] = useState(() => {
+    const user = localStorage.getItem('user')
+    if (!user) return ''
+    const userData: UserProfile = JSON.parse(user)
+    return userData
+  })
 
   const fullname = profile?.fullname || profile?.name || 'Anonymous'
   const username = profile?.username || ''
