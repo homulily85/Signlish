@@ -77,20 +77,12 @@ export default function VisionPractice({
 
     let isCancelled = false;
 
-    // Helper to get a random wrong word from the list
-    const getRandomWord = () => {
-      const filtered = cards.filter((w) => w.word !== currentWord.word);
-      // Fallback if no other words exist
-      if (filtered.length === 0) return "WRONG";
-      return filtered[Math.floor(Math.random() * filtered.length)].word;
-    };
-
     const delay = (ms: number) =>
         new Promise((resolve) => setTimeout(resolve, ms));
 
     const runScenario = async () => {
       // Simulate waiting for user to prepare
-      await delay(3000);
+      await delay(4000);
       if (isCancelled) return;
 
       const scenario = scenarioRef.current;
@@ -102,13 +94,13 @@ export default function VisionPractice({
         if (isCancelled) return;
         setDetectedWord(currentWord.word);
         setIsCorrect(true);
-      } else if (scenario === 1) {
+      } else if (scenario === 2) {
         // Scenario 2: One wrong guess, then correct
         if (isCancelled) return;
-        setDetectedWord(getRandomWord());
+        setDetectedWord("hello");
         setIsCorrect(false);
 
-        await delay(2000);
+        await delay(4000);
         if (isCancelled) return;
 
         setDetectedWord(currentWord.word);
@@ -116,16 +108,16 @@ export default function VisionPractice({
       } else {
         // Scenario 3: Two wrong guesses, then correct
         if (isCancelled) return;
-        setDetectedWord(getRandomWord());
+        setDetectedWord("you");
         setIsCorrect(false);
 
-        await delay(2000);
+        await delay(4000);
         if (isCancelled) return;
 
-        setDetectedWord(getRandomWord());
+        setDetectedWord("happy");
         setIsCorrect(false);
 
-        await delay(2000);
+        await delay(4000);
         if (isCancelled) return;
 
         setDetectedWord(currentWord.word);
