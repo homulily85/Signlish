@@ -38,7 +38,7 @@ export default function StreakCalendar() {
   );
 
   const randomHighlight = (day: Date) => {
-    if (!isBefore(day, subDays(today, 4))) return false;
+    if (!isBefore(day, subDays(today, 5))) return false;
     return Math.random() < 0.35;
   };
 
