@@ -1,8 +1,10 @@
+from typing import Union
+
 from pydantic import BaseModel
 
 
 class DictionaryItem(BaseModel):
-    id: str
+    id: Union[int, str]
     word: str
     definition: str
     instruction: str
