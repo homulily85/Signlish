@@ -61,7 +61,7 @@ export default function PracticeMenu({
                                 <CardTitle className="text-2xl">Vision Mode</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                Practice with webcam (demo)
+                                Practice signs with your webcam and get real-time feedback!
                             </CardContent>
                         </Card>
                     </motion.div>
