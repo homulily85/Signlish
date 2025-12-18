@@ -68,7 +68,6 @@ async def weekly_signs_learned(user_id: str = Query(..., description="ID of the 
         "user_id": ObjectId(user_id),
         "date": {"$gte": start.isoformat(), "$lte": today.isoformat()}
     }))
-    print(records)
     day_map = defaultdict(int)
     for r in records:
         day_map[r["date"]] += r.get("signs_learned", 0)
@@ -84,7 +83,6 @@ async def weekly_signs_learned(user_id: str = Query(..., description="ID of the 
             "day": d.strftime("%a"),
             "learned": value
         })
-    print(data, total)
     return {
         "data": data,
         "total_this_week": total,

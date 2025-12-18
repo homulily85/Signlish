@@ -3,6 +3,7 @@ import os
 import random
 from datetime import date, timedelta
 from typing import List, Dict
+from bson import ObjectId
 
 from fastapi import APIRouter, HTTPException
 
@@ -94,12 +95,11 @@ def update_streak(user_col, email: str):
     )
 
 
-def log_activity(email: str, minutes=0, signs=0):
+def log_activity(user_id: ObjectId, minutes=0, signs=0):
     col = get_activity_collection()
     today = date.today().isoformat()
-
     col.update_one(
-        {"email": email, "date": today},
+        {"user_id": user_id, "date": today},
         {"$inc": {
             "study_minutes": minutes,
             "signs_learned": signs
@@ -176,7 +176,7 @@ async def mark_lesson_complete(email: str, word_id: int, category: str):
     )
 
     update_streak(user_col, email)
-    log_activity(email, minutes=2, signs=1)
+    log_activity(user["_id"], minutes=2, signs=1)
 
     return {"status": "completed"}
 
@@ -216,7 +216,7 @@ async def mark_question_complete(email: str, category: str):
     )
 
     update_streak(user_col, email)
-    log_activity(email, minutes=3)
+    log_activity(user["_id"], minutes=3)
 
     return {"status": "completed"}
 
