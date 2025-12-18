@@ -141,7 +141,6 @@ async def get_user_progress(email: str):
     
     progress = user.get("progress", {})
     result = {}
-
     for cat in CATEGORIES:
         completed = progress.get(cat, [])
         result[cat] = {

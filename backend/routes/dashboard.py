@@ -43,7 +43,7 @@ async def weekly_study(user_id: str = Query(..., description="ID of the user")):
             "minutes": minutes
         })
 
-    last_week_total = 280  # có thể tính thật sau
+    last_week_total = 67
     diff = total - last_week_total
     percent = round((diff / last_week_total) * 100) if last_week_total else 0
     return {
@@ -63,19 +63,19 @@ async def weekly_signs_learned(user_id: str = Query(..., description="ID of the 
     activity_col = get_activity_collection()
     today = date.today()
     start = today - timedelta(days=6)
-    progress = user.get("progress", {})
-    completed = sum(len(v) for k, v in progress.items() if isinstance(v, list))
+    
     records = list(activity_col.find({
         "user_id": ObjectId(user_id),
         "date": {"$gte": start.isoformat(), "$lte": today.isoformat()}
     }))
-
+    print(records)
     day_map = defaultdict(int)
     for r in records:
         day_map[r["date"]] += r.get("signs_learned", 0)
 
     data = []
     total = 0
+    
     for i in range(7):
         d = start + timedelta(days=i)
         value = day_map.get(d.isoformat(), 0)
@@ -87,8 +87,8 @@ async def weekly_signs_learned(user_id: str = Query(..., description="ID of the 
     print(data, total)
     return {
         "data": data,
-        "total_this_week": completed,
-        "total_last_week": total
+        "total_this_week": total,
+        "total_last_week": 5
     }
 
 @router.get("/progress", response_model=LessonProgressResponse)
