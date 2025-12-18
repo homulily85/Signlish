@@ -160,9 +160,6 @@ export default function StreakCalendar() {
           <span className="font-bold">21 days</span>
         </div>
 
-        <p className="text-xs text-muted-foreground">
-          This is a UI preview for streak calendar.
-        </p>
       </CardContent>
     </Card>
   );

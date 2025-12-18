@@ -62,7 +62,7 @@ export default function LearningProgressCard() {
             Signs Learned (7 days)
           </CardTitle>
 
-          <div className="text-2xl font-bold leading-none">
+          <div className="text-3xl font-bold leading-none">
             {totalThisWeek}
             <span className="ml-1 text-sm font-medium text-muted-foreground">
               signs
