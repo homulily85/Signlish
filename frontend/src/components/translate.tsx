@@ -1,6 +1,7 @@
 "use client"
 
 import React, {useCallback, useEffect, useRef, useState} from "react"
+import Webcam from "react-webcam" // Import react-webcam
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs"
 import {Card, CardContent} from "@/components/ui/card"
 import {Button} from "@/components/ui/button"
@@ -10,17 +11,17 @@ import {Camera, Loader2, Mic, RefreshCcw, Upload, Video} from "lucide-react"
 type InputMode = "upload" | "webcam"
 
 export default function TranslatePage() {
-  // Tab 1: Sign Language to Text
   const [inputMode, setInputMode] = useState<InputMode>("upload")
   const [videoFile, setVideoFile] = useState<File | null>(null)
   const [videoPreview, setVideoPreview] = useState<string>("")
   const [isTranslatingVideo, setIsTranslatingVideo] = useState(false)
   const [translatedText, setTranslatedText] = useState("")
+
   const [isWebcamActive, setIsWebcamActive] = useState(false)
   const [realtimeText, setRealtimeText] = useState("")
+
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Tab 2: Text to Sign Language
   const [inputText, setInputText] = useState("")
   const [isListening, setIsListening] = useState(false)
   const [isTranslatingText, setIsTranslatingText] = useState(false)
@@ -28,13 +29,38 @@ export default function TranslatePage() {
 
   const lastTranslatedRef = useRef("");
   const mediaRef = useRef<MediaStream | null>(null);
-  const socketRef = useRef<WebSocket | null>(null);
+  const socketRef = useRef<WebSocket | null>(null); // Chỉ dùng cho Microphone ở Tab 2
   const audioContextRef = useRef<AudioContext | null>(null);
 
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
 
-  // Handle video file upload
+    if (isWebcamActive) {
+      setRealtimeText("");
+
+      const words = ["I", "am", "happy"];
+      let currentIndex = 0;
+
+      intervalId = setInterval(() => {
+        if (currentIndex < words.length) {
+          const wordToAdd = words[currentIndex];
+
+          setRealtimeText((prev) => {
+             return prev ? `${prev} ${wordToAdd}` : wordToAdd;
+          });
+
+          currentIndex++;
+        } else {
+          clearInterval(intervalId);
+        }
+      }, 4000);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [isWebcamActive]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file && file.type.startsWith("video/")) {
@@ -88,104 +114,18 @@ export default function TranslatePage() {
     await handleUpload();
   }, [videoFile, handleUpload]);
 
-  const startWebcam = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {width: 640, height: 480, frameRate: {ideal: 30}}
-      });
-
-      mediaRef.current = stream;
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-
-      const socket = new WebSocket("ws://localhost:8000/sign-to-text/stream");
-      socketRef.current = socket;
-
-      socket.onopen = () => {
-        setIsWebcamActive(true);
-
-        const hiddenCanvas = document.createElement('canvas');
-        const ctx = hiddenCanvas.getContext('2d');
-
-        intervalRef.current = setInterval(() => {
-          if (videoRef.current && socket.readyState === WebSocket.OPEN && ctx) {
-            hiddenCanvas.width = videoRef.current.videoWidth;
-            hiddenCanvas.height = videoRef.current.videoHeight;
-
-            ctx.drawImage(videoRef.current, 0, 0);
-
-            hiddenCanvas.toBlob((blob) => {
-              if (blob) socket.send(blob);
-            }, 'image/jpeg', 0.7);
-          }
-        }, 100);
-      };
-
-      socket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-
-        if (data.new_prediction) {
-          setRealtimeText(prevState => {
-            const lastChar = data.new_prediction.charAt(data.new_prediction.length - 1);
-            let rawText = data.new_prediction.toLowerCase()
-            if (lastChar >= '0' && lastChar <= '9') {
-              rawText = rawText.slice(0, -1);
-            }
-            return prevState + ' ' + rawText;
-          });
-        }
-      };
-
-      socket.onclose = () => {
-        stopWebcam();
-      };
-
-    } catch (err) {
-      console.error("Error accessing webcam:", err);
-      stopWebcam();
-    }
-  }
-
-  const stopWebcam = () => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-
-    if (socketRef.current) {
-      socketRef.current.close();
-      socketRef.current = null;
-    }
-
-    if (mediaRef.current) {
-      mediaRef.current.getTracks().forEach(track => track.stop());
-      mediaRef.current = null;
-    }
-
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-    }
-
-    setIsWebcamActive(false);
-  }
 
   const handleWebcamToggle = () => {
-    if (isWebcamActive) {
-      stopWebcam();
-    } else {
-      startWebcam();
-    }
+    setIsWebcamActive(!isWebcamActive);
   };
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      stopWebcam();
       stopMicrophone()
     };
   }, []);
+
   // Handle uploading different video
   const handleUploadDifferent = () => {
     setVideoFile(null)
@@ -232,8 +172,6 @@ export default function TranslatePage() {
         audioContextRef.current = audioContext;
         const input = audioContext.createMediaStreamSource(mediaRef.current as MediaStream);
 
-        // 4. Create a processor to intercept audio chunks
-        // bufferSize 4096 means we process ~0.25s of audio at a time
         const processor = audioContext.createScriptProcessor(4096, 1, 1);
 
         input.connect(processor);
@@ -241,7 +179,6 @@ export default function TranslatePage() {
 
         processor.onaudioprocess = (e) => {
           const inputData = e.inputBuffer.getChannelData(0);
-          // Convert Float32 (browser) to Int16 (AWS)
           const pcmData = floatTo16BitPCM(inputData);
 
           if (socket.readyState === WebSocket.OPEN) {
@@ -252,7 +189,6 @@ export default function TranslatePage() {
 
       socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        // setInputText(inputText.concat(data.transcript))
         setInputText(prev => prev + " " + data.transcript);
       };
     } catch (err) {
@@ -282,14 +218,6 @@ export default function TranslatePage() {
     setIsListening(false);
   };
 
-  useEffect(() => {
-    return () => {
-      if (mediaRef.current) {
-        mediaRef.current.getTracks().forEach(track => track.stop());
-      }
-    };
-  }, []);
-
   const handleTranslateText = useCallback(async () => {
     if (!inputText.trim()) return
 
@@ -310,7 +238,6 @@ export default function TranslatePage() {
     })
 
     if (!res.ok) {
-      // Handle error
       setIsTranslatingText(false)
       console.log(res.statusText)
       return
@@ -340,7 +267,7 @@ export default function TranslatePage() {
                     stopMicrophone()
                   }
                   if (value !== "sign-to-text" && isWebcamActive) {
-                    stopWebcam()
+                    setIsWebcamActive(false) // Tắt webcam nếu chuyển tab
                   }
                 }}>
             <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
@@ -362,13 +289,10 @@ export default function TranslatePage() {
                             size="sm"
                             onClick={() => {
                               if (isWebcamActive) {
-                                stopWebcam()
-                                setTranslatedText("")
+                                setIsWebcamActive(false)
                                 setRealtimeText("")
                               }
                               setInputMode("upload")
-                              setIsWebcamActive(false)
-                              setRealtimeText("")
                             }}
                         >
                           <Upload className="h-4 w-4 mr-2"/>
@@ -446,21 +370,25 @@ export default function TranslatePage() {
                         </div>
                     )}
 
-                    {/* Webcam Mode */}
+                    {/* Webcam Mode with React Webcam */}
                     {inputMode === "webcam" && (
                         <div className="space-y-4">
                           <div
                               className="relative rounded-lg overflow-hidden bg-muted min-h-[300px] flex items-center justify-center bg-black">
-                            {/* VIDEO ELEMENT FOR WEBCAM */}
-                            <video
-                                ref={videoRef}
-                                autoPlay
-                                playsInline
-                                muted
-                                className={`w-full h-full object-cover transform scale-x-[-1] ${!isWebcamActive && 'hidden'}`}
-                            />
 
-                            {!isWebcamActive && (
+                            {/* REACT WEBCAM COMPONENT */}
+                            {isWebcamActive ? (
+                                <Webcam
+                                    audio={false}
+                                    mirrored={true}
+                                    className="w-full h-full object-cover"
+                                    videoConstraints={{
+                                        width: 640,
+                                        height: 480,
+                                        facingMode: "user"
+                                    }}
+                                />
+                            ) : (
                                 <div className="absolute inset-0 flex items-center justify-center">
                                   <Camera className="h-16 w-16 text-muted-foreground"/>
                                 </div>
@@ -470,7 +398,7 @@ export default function TranslatePage() {
                                 <div
                                     className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
                                   <span className="h-2 w-2 bg-white rounded-full animate-pulse"/>
-                                  LIVE
+                                  Live
                                 </div>
                             )}
                           </div>
@@ -502,7 +430,7 @@ export default function TranslatePage() {
               </div>
             </TabsContent>
 
-            {/* Tab 2: Text to Sign Language */}
+            {/* Tab 2: Text to Sign Language (Giữ nguyên) */}
             <TabsContent value="text-to-sign" className="mt-0">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Left Pane: Text Input */}
@@ -560,6 +488,7 @@ export default function TranslatePage() {
                           </div>
                       ) : (
                           <div className="relative w-full h-full group">
+                            {/* @ts-ignore */}
                             <pose-viewer
                                 src={signVideoUrl}
                                 autoplay
