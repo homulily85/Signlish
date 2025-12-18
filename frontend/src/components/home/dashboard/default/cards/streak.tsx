@@ -29,9 +29,6 @@ export default function StreakCalendar() {
     startOfMonth(today)
   );
 
-  /* ================= FAKE DATA ================= */
-
-  // 4 ngày gần nhất (không tính hôm nay)
   const last4Days = useMemo(
     () =>
       Array.from({ length: 4 }, (_, i) =>
@@ -40,11 +37,8 @@ export default function StreakCalendar() {
     [today]
   );
 
-  // random các ngày cũ hơn có màu chart-4
   const randomHighlight = (day: Date) => {
-    // chỉ random cho ngày trước last 4
     if (!isBefore(day, subDays(today, 4))) return false;
-    // xác suất ~35%
     return Math.random() < 0.35;
   };
 
@@ -63,7 +57,7 @@ export default function StreakCalendar() {
     <Card>
       <CardHeader>
         <CardTitle className="text-base">
-          Learning Streak (Fake)
+          Learning Streak
         </CardTitle>
       </CardHeader>
 
@@ -155,7 +149,7 @@ export default function StreakCalendar() {
           })}
         </div>
 
-        {/* ===== Fake info ===== */}
+        {/* ===== Mock info ===== */}
         <div className="flex justify-between text-sm pt-2">
           <span>🔥 Current streak</span>
           <span className="font-bold">5 days</span>
@@ -167,7 +161,7 @@ export default function StreakCalendar() {
         </div>
 
         <p className="text-xs text-muted-foreground">
-          This is a fake UI preview for streak calendar.
+          This is a UI preview for streak calendar.
         </p>
       </CardContent>
     </Card>
